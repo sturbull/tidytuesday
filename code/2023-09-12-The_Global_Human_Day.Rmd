@@ -16,18 +16,9 @@ DATE <- "2023-09-12"
 ```
 
 ```{R}
-#Load tables
-FILES_LOC <- here('data','2023',DATE)
-FILES <- list.files(FILES_LOC)
-for(FILE in FILES){
-  if(str_detect(FILE,".csv")){
-    table_name  <-  str_replace_all(FILE,".csv","")
-    assign(x =table_name,
-           value = read.csv(paste0(FILES_LOC,"/",FILE))
-           )
-    print(table_name)
-  }
-}
+source(here("code","load_tables.R"))
+load_tables(here('data','2023',DATE))
+
 ```
 
 ```{R}
