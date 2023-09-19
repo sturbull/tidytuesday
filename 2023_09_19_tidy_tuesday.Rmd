@@ -34,7 +34,11 @@ red <- "#FF5674"
 tt_family <- "montserrat"
 font_add_google("Montserrat", tt_family)
 
-tt_caption <- paste0("Steven Turnbull #TidyTuesday 2023-09-19<span style='color:", bg_color, ";'>..</span><br>synergia.consulting")
+tt_caption <- paste0(
+"Steven Turnbull #TidyTuesday 2023-09-19 <br>
+synergia.consulting
+<span style='color:", bg_color, ";'>..</span>"
+)
 
 
 
@@ -112,7 +116,7 @@ tt_theme <- function() {
       family = tt_family, 
       color = txt_color,
       face = "bold",
-      size = 190,
+      size = 100,
       margin = margin(t = 0, r = 0, b = 0, l = 0)
     ),
     plot.title.position = "plot",
@@ -126,7 +130,7 @@ tt_theme <- function() {
     plot.caption = element_textbox_simple(
       family = tt_family, 
       color = txt_color,
-      size = 24,
+      size = 60,
       margin = margin(t = 10, r = 0, b = 0, l = 0)
     ),
     plot.caption.position = "plot",
@@ -155,21 +159,21 @@ tt_theme <- function() {
 
 Using your processed dataset, create your unique visualization.
 
-```{r Visualize,fig.width=20,fig.height=20}
+```{r Visualize,fig.width=10,fig.height=10}
 full_edge_list |>
   ggplot() +
   geom_segment(aes(x=x_from,y=y_from,colour=dist2HW_from,
                    xend=x_to,yend=y_to),
-               alpha=0.5,linewidth=0.1) +
+               alpha=0.5,linewidth=0.2) +
   geom_point(data = nodes, aes(x=x,y=y,colour=dist2HW),
-             alpha=0.5,size=3) +
+             alpha=0.35,size=3) +
    geom_point(data = hadley, aes(x=x,y=y),colour="black",
              alpha=1,size=3) +
   annotate(geom = "text", label = hadley$name,
-           xend = hadley$x,yend = hadley$y,x = 16,y=hadley$y-0.2,
-           colour=yellow,size=10) +
- geom_curve(aes(x = 16, y = hadley$y, xend = hadley$x+0.1, yend = hadley$y+0.1),
-             arrow = arrow(length = unit(0.10, "cm")),curvature = 0.2,colour="#473678") +
+           xend = hadley$x,yend = hadley$y,x = 15.25,y=hadley$y-0.2,
+           colour=yellow,size=8) +
+ geom_curve(aes(x = 15, y = hadley$y, xend = hadley$x+0.1, yend = hadley$y+0.1),
+             arrow = arrow(length = unit(0.7, "cm")),curvature = 0.2,colour="white") +
   scale_colour_viridis_c(direction = -1) +
   tt_theme() +
   theme(legend.position = "none") +
@@ -186,7 +190,11 @@ Save your image for sharing. Be sure to use the `#TidyTuesday` hashtag in your p
 ```{r}
 # This will save your most recent plot
 ggsave(
-  filename = paste0(tt_source,"_",Sys.Date(),".png"),width = 15,height=15,
-  device = "png",dpi=600)
+  filename = paste0(tt_source,"_",Sys.Date(),".png"),
+  width = 10, # width of saved image
+  height = 10, # height of saved image
+  #units = "in", # units for width and height
+  dpi = 300, # dpi to use when saving image,
+  device = "png")
 
 ```
