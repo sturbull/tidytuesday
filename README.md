@@ -13,10 +13,10 @@ For reasons that I don’t fully understand I had to decommission my old
 repo. I will one day migrate it over here but in the meantime here is a
 link to my [Old TidyTuesday repo](https://github.com/doehm/tidyTuesday)
 
-## [Week 37: Global Human Day](https://github.com/sturbull/tidytuesday/blob/master/2023_09_19_tidy_tuesday.Rmd)
+## [Week 37: CRAN Package Authors](https://github.com/sturbull/tidytuesday/blob/master/2023_09_19_tidy_tuesday.Rmd)
 
-<a href='https://github.com/doehm/tidytues/blob/main/scripts/2023/week-37-global human day/global-human-day.png'>
-<img src='scripts/2023/week-37-global-human-day/global-human-day-s.png'/></a>
+<a href='https://github.com/sturbull/tidytuesday/blob/master/CRAN_Package_Authors_2023-09-19.png'>
+<img src='CRAN_Package_Authors_2023-09-19.png'/></a>
 
 ## How to Participate
 
