@@ -14,7 +14,7 @@ As such we encourage everyone of all skills to participate!
 ```{r setup, include=FALSE}
 
 knitr::opts_chunk$set(echo = TRUE)
-
+library(here)
 library(tidyverse)
 library(tidytuesdayR)
 library(igraph)
