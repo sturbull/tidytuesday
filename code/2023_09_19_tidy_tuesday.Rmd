@@ -182,6 +182,7 @@ full_edge_list |>
     subtitle = "Hadley sits in the middle of the R co-authorship universe",
     caption =tt_caption
     )
+
 ```
 
 # Save Image
