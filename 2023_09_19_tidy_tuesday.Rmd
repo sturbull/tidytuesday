@@ -191,7 +191,7 @@ Save your image for sharing. Be sure to use the `#TidyTuesday` hashtag in your p
 ```{r}
 # This will save your most recent plot
 ggsave(
-  filename = paste0(tt_source,"_",Sys.Date(),".png"),
+  filename = paste0(tt_source,"_2023-09-19.png"),
   width = 10, # width of saved image
   height = 10, # height of saved image
   units = "in", # units for width and height
