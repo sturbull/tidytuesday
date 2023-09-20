@@ -7,6 +7,17 @@
 
 ***
 
+Click on header or the chart for the code.
+
+For reasons that I don’t fully understand I had to decommission my old
+repo. I will one day migrate it over here but in the meantime here is a
+link to my [Old TidyTuesday repo](https://github.com/doehm/tidyTuesday)
+
+## [Week 37: Global Human Day](https://github.com/sturbull/tidytuesday/blob/master/2023_09_19_tidy_tuesday.Rmd)
+
+<a href='https://github.com/doehm/tidytues/blob/main/scripts/2023/week-37-global human day/global-human-day.png'>
+<img src='scripts/2023/week-37-global-human-day/global-human-day-s.png'/></a>
+
 ## How to Participate
 
 - Data is [posted to social media](dataset_announcements.md) every Monday morning. Follow the instructions in the new post for how to download the data.

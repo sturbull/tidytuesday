@@ -116,21 +116,21 @@ tt_theme <- function() {
       family = tt_family, 
       color = txt_color,
       face = "bold",
-      size = 100,
+      size = 35,
       margin = margin(t = 0, r = 0, b = 0, l = 0)
     ),
     plot.title.position = "plot",
     plot.subtitle = element_textbox_simple(
       family = tt_family, 
       color = txt_color,
-      size = 90,
+      size = 20,
       lineheight = 0.3,
       margin = margin(t = 4, r = 0, b = 4, l = 0)
     ),
     plot.caption = element_textbox_simple(
       family = tt_family, 
       color = txt_color,
-      size = 60,
+      size = 10,
       margin = margin(t = 10, r = 0, b = 0, l = 0)
     ),
     plot.caption.position = "plot",
@@ -171,14 +171,15 @@ full_edge_list |>
              alpha=1,size=3) +
   annotate(geom = "text", label = hadley$name,
            xend = hadley$x,yend = hadley$y,x = 15.25,y=hadley$y-0.2,
-           colour=yellow,size=8) +
- geom_curve(aes(x = 15, y = hadley$y, xend = hadley$x+0.1, yend = hadley$y+0.1),
-             arrow = arrow(length = unit(0.7, "cm")),curvature = 0.2,colour="white") +
+           colour="white",size=4) +
+ geom_curve(aes(x = 15, y = hadley$y+0.1, xend = hadley$x+0.1, yend = hadley$y+0.1),
+             arrow = arrow(length = unit(0.5, "cm")),curvature = 0.2,colour="white") +
   scale_colour_viridis_c(direction = -1) +
   tt_theme() +
   theme(legend.position = "none") +
   labs(
-    title = "CRAN Package Authors",
+    title = "CRAN Package Co-Authorship Network",
+    subtitle = "Hadley sits in the middle of the R co-authorship universe",
     caption =tt_caption
     )
 ```
@@ -193,7 +194,7 @@ ggsave(
   filename = paste0(tt_source,"_",Sys.Date(),".png"),
   width = 10, # width of saved image
   height = 10, # height of saved image
-  #units = "in", # units for width and height
+  units = "in", # units for width and height
   dpi = 300, # dpi to use when saving image,
   device = "png")
 
