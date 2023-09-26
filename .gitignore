@@ -43,3 +43,6 @@ tidytuesday_github.Rproj
 # Other leftovers
 .DS_Store
 
+/outputs/2023-09-26/
+
+/assets/
