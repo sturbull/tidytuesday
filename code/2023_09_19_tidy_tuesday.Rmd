@@ -40,6 +40,28 @@ synergia.consulting
 <span style='color:", bg_color, ";'>..</span>"
 )
 
+tt_title_text    <- str_glue("CRAN Package Co-Authorship Network") 
+
+tt_subtitle_text <- str_glue("Hadley sits in the middle of the R co-authorship universe") 
+
+
+
+
+### |-  fonts ----
+font_add('fa6-brands', 'fonts/6.4.2/Font Awesome 6 Brands-Regular-400.otf') 
+font_add_google("Titillium Web", family = "title")                           
+font_add_google("Dosis", family = "subtitle")              
+font_add_google("Barlow Condensed", family = "text")  
+font_add_google("PT Sans Narrow", family = "caption")
+font_add_google("Shadows Into Light", family = "annote")  
+showtext_auto(enable = TRUE)     
+
+
+
+tt <- str_glue("#TidyTuesday: 2023 Week 38 &bull; Source: CRAN Package Authors<br>")  
+X  <- str_glue("<span style='font-family:fa6-brands'>&#xe61b;</span>")   
+gh <- str_glue("<span style='font-family:fa6-brands'>&#xf09b;</span>")
+mn <- str_glue("<span style='font-family:fa6-brands'>&#xf4f6;</span>")
 
 
 ```
@@ -109,9 +131,7 @@ tt_theme <- function() {
     panel.border = element_blank(),
     plot.background = element_rect(fill = bg_color),
     panel.background = element_rect(fill = bg_color),
-    legend.background = element_rect(fill = bg_color),
-    legend.key = element_rect(fill = bg_color),
-    strip.background = element_rect(fill = bg_color), 
+    
     plot.title = element_textbox_simple(
       family = tt_family, 
       color = txt_color,
@@ -120,6 +140,7 @@ tt_theme <- function() {
       margin = margin(t = 0, r = 0, b = 0, l = 0)
     ),
     plot.title.position = "plot",
+    
     plot.subtitle = element_textbox_simple(
       family = tt_family, 
       color = txt_color,
@@ -127,6 +148,7 @@ tt_theme <- function() {
       lineheight = 0.3,
       margin = margin(t = 4, r = 0, b = 4, l = 0)
     ),
+    
     plot.caption = element_textbox_simple(
       family = tt_family, 
       color = txt_color,
@@ -134,20 +156,7 @@ tt_theme <- function() {
       margin = margin(t = 10, r = 0, b = 0, l = 0)
     ),
     plot.caption.position = "plot",
-    strip.text = element_text(
-      family = tt_family,
-      color = txt_color,
-      face = "bold",
-      size = 32, 
-      lineheight = 0.3,
-      margin = margin(t = 0, r = 0, b = 0, l = 0)
-    ),
-    legend.text = element_text(
-      family = tt_family,
-      color = txt_color,
-      size = 64
-    ),
-    legend.title = element_blank(),
+    
     axis.title = element_blank(),
     axis.text = element_blank()
     )
@@ -178,8 +187,8 @@ full_edge_list |>
   tt_theme() +
   theme(legend.position = "none") +
   labs(
-    title = "CRAN Package Co-Authorship Network",
-    subtitle = "Hadley sits in the middle of the R co-authorship universe",
+    title = tt_title_text,
+    subtitle = tt_subtitle_text,
     caption =tt_caption
     )
 
@@ -196,7 +205,7 @@ ggsave(
   width = 10, # width of saved image
   height = 10, # height of saved image
   units = "in", # units for width and height
-  dpi = 300, # dpi to use when saving image,
+  dpi = 600, # dpi to use when saving image,
   device = "png")
 
 ```

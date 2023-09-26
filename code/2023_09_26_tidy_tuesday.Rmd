@@ -1,0 +1,261 @@
+---
+title: "TidyTemplate"
+date: 2023-09-26
+output: html_document
+---
+
+# TidyTuesday
+
+Join the R4DS Online Learning Community in the weekly #TidyTuesday event!
+Every week we post a raw dataset, a chart or article related to that dataset, and ask you to explore the data.
+While the dataset will be “tamed”, it will not always be tidy! As such you might need to apply various R for Data Science techniques to wrangle the data into a true tidy format.
+The goal of TidyTuesday is to apply your R skills, get feedback, explore other’s work, and connect with the greater #RStats community!
+As such we encourage everyone of all skills to participate!
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(tidytuesdayR)
+library(camcorder)
+library(here)
+library(glue)
+library(ggtext)
+library(showtext)
+library(extrafont)
+library(patchwork)
+library(emojifont)
+```
+
+
+```{R}
+tt_source <- "richmond"
+bg_color <- "#B1D8B7"
+txt_color <- "#232B5C"
+txt_color2 <- "#FFF5EE"
+
+yellow <- "#FFB702"  
+blue <- "#1E9BD5"
+green <- "#20C29D"
+light_blue <- "#00E7EC"
+red <- "#FF5674"
+
+tt_family <- "montserrat"
+tt_family_2 <- "ubuntu"
+font_add_google("Montserrat", tt_family)
+font_add_google("Ubuntu", tt_family_2)
+
+font_add("fa-brands",
+         regular = here("Assets","Fonts","fontawesome-free-6.4.2-web","webfonts","fa-brands-400.ttf"))
+font_add("fa-solid",
+         regular = here("Assets","Fonts","fontawesome-free-6.4.2-web","webfonts","fa-solid-900.ttf"))
+font_add("fa-regular",
+         regular = here("Assets","Fonts","fontawesome-free-6.4.2-web","webfonts","fa-regular-400.ttf"))
+showtext_auto(enable = T) 
+
+X  <- str_glue("<span style='font-family:fa-brands'>&#xe61b;</span>")
+GH <- str_glue("<span style='font-family:fa-brands'>&#xf09b;</span>")
+MN <- str_glue("<span style='font-family:fa-brands'>&#xf4f6;</span>")
+DT <- str_glue("<span style='font-family:fa-brands'>&#xf1c0;</span>")
+
+tt_caption <- str_glue(
+   "Steven Turnbull #TidyTuesday 2023-09-26<br>
+  {X} @Turdbull. {GH} @sturbull. {MN} @turdbull<br>
+  Data: Deepsha Menghani - richmondway
+  "
+)
+
+tt_title_text    <- str_glue("*ROY KENT*")
+
+tt_subtitle_text <- str_glue("What Did Roy Kent's Involvement in Ted Lasso Look Like?") 
+
+```
+
+# Load the weekly Data
+
+Download the weekly data and make available in the `tt` object.
+
+```{r Load}
+
+tt <- tt_load("2023-09-26")
+
+```
+
+
+# Readme
+
+Take a look at the readme for the weekly data to get insight on the dataset.
+This includes a data dictionary, source, and a link to an article on the data.
+
+```{r Readme, eval = interactive()}
+
+tt
+
+```
+
+
+# Glimpse Data
+
+Take an initial look at the format of the data available.
+
+```{r Glimpse}
+
+tt %>% 
+  map(glimpse)
+
+```
+
+# Wrangle
+
+Explore the data and process it into a nice format for plotting! Access each dataset by name by using a dollarsign after the `tt` object and then the name of the data set.
+
+```{r Wrangle}
+richmond_df <- tt$richmondway %>%
+  mutate(season_clean = paste0("Season ",Season)) %>%
+  mutate(Episode = paste0("Ep.",Episode)) %>%
+  mutate(Episode = factor(Episode,levels = c(paste0("Ep.",1:12)))) %>%
+  group_by(Season) %>%
+  complete(Episode) %>%
+  mutate(imdb_max = Imdb_rating/max(Imdb_rating,na.rm = T)) %>%
+    mutate(F_perc_max = F_perc/max(F_perc,na.rm = T)) %>%
+
+    mutate(F_count_total_max = F_count_total/max(F_count_total,na.rm = T)) %>%
+  mutate(Dating_flag = factor(Dating_flag, levels = c("Yes","No"))) %>%
+  mutate(Coaching_flag = factor(Coaching_flag, levels = c("Yes","No"))) %>%
+  mutate(Dating_icon = case_when(Dating_flag == "Yes" ~ fontawesome("fa-heart"),
+                                 Dating_flag == "No" ~ fontawesome('fa-thumbs-o-down'),
+                                 TRUE ~ NA)
+  ) %>%
+  mutate(Coaching_icon = case_when(Coaching_flag == "Yes" ~ fontawesome("fa-check"),
+                                   Coaching_flag == "No" ~ fontawesome("fa-times"),
+                                   TRUE ~ NA)) %>%
+  mutate(text_colour=ifelse(Imdb_rating>8.5,"dark","light")) %>%
+  mutate(text_colour = factor(text_colour,levels = c("light","dark"))) %>%
+  mutate(F_count_total_label = ifelse(!is.na(F_count_total),paste0(F_count_total,"!"),NA))
+```
+
+```{R}
+gg_record(dir = here("outputs","2023-09-26"),
+          device = "png",
+          width = 7, height = 7, 
+          units = "in", dpi = 320)
+```
+# Visualize
+
+Using your processed dataset, create your unique visualization.
+```{r}
+#set theme
+tt_theme <- function() {
+  theme(
+    panel.grid = element_blank(),
+    axis.ticks = element_blank(),
+    panel.border = element_blank(),
+    plot.background = element_rect(fill = bg_color),
+    panel.background = element_rect(fill = bg_color),
+    
+    plot.title = element_textbox_simple(
+      halign = 0,
+      tt_family_2,
+      color = txt_color2,
+      face = "bold",
+      size = 60,
+      margin = margin(t = 0, r = 0, b = 0, l = 0)
+    ),
+    plot.title.position = "plot",
+  
+    strip.background = element_rect(fill = bg_color),
+    strip.text = element_text(family = tt_family,colour = txt_color),
+    
+    legend.position = "none",
+   
+    
+    axis.title = element_blank(),
+    axis.text = element_text(size= 30, colour = txt_color)
+  )
+}
+
+
+theme_complete <- tt_theme() + 
+  theme(
+    plot.title = element_textbox_simple(
+      halign = 0,
+      tt_family_2,
+      color = txt_color2,
+      face = "bold",
+      size = 100,
+      margin = margin(t = 0, r = 0, b = 0, l = 0)
+    ),
+    plot.title.position = "plot",
+    
+     plot.caption = element_textbox_simple(
+      family = tt_family, 
+      color = txt_color,
+      size = 25,
+            lineheight = 0.3,
+
+      margin = margin(t = 10, r = 0, b = 0, l = 0)
+    ),
+    plot.caption.position = "plot",
+    
+    plot.subtitle = element_textbox_simple(
+      family = tt_family, 
+      color = txt_color2,
+      size = 55,
+      lineheight = 0.3,
+      margin = margin(t = 4, r = 0, b = 4, l = 0)
+    ),
+    )
+
+```
+
+
+```{r Visualize}
+cols<-c(red,'grey10')
+plot_list <- list()
+for(i in 1:3){
+  plot <- richmond_df %>%
+    filter(Season == i) %>%
+    ggplot(aes(x = Episode)) +
+    #imdb
+    geom_point(y = 1,aes(size =imdb_max,alpha=imdb_max,fill=imdb_max), shape=21,colour="black") + 
+    geom_text(y = 1,aes(label =Imdb_rating, size=imdb_max/1.05,colour=text_colour)) + 
+    #f bombs
+    #geom_point(y = 0.7,aes(size = F_count_total_max,alpha=F_count_total_max),
+               #shape=21, fill="#C21B2F",colour="black") + 
+    geom_text(y = 0.7,aes(label = F_count_total_label, size= F_count_total_max), colour="black") + 
+    #Coaching
+    geom_text(y = 0.4,aes(label = Coaching_icon,colour=Coaching_flag), family = "fontawesome-webfont", size=20,colour=blue) + 
+    #Dating
+    geom_text(y = 0.1,aes(label = Dating_icon,colour=Dating_flag), family = 'fontawesome-webfont',size=20,colour=red) + 
+    ggtitle(paste0("Season ", i )) +
+    tt_theme() +
+  scale_y_continuous(breaks = c(1,0.7,0.4,0.1),limits = c(0,1.2),
+                   labels = c("IMDB Score", "Number of 'F-Bombs'","Was Roy Coaching?","Was Roy Dating?"),
+                   
+                   ) +
+    scale_colour_manual(values = c("white","black")) +
+    scale_fill_viridis_c(option="A") +
+    scale_size(range=c(1,10)) + 
+  scale_alpha(range = 0.75,1)
+  plot_list[[i]]<-plot
+}
+
+patchwork::wrap_plots(plot_list,nrow = 3) +
+  patchwork::plot_annotation(title = tt_title_text,
+                             subtitle = tt_subtitle_text,
+                             caption = tt_caption,
+                                 theme = theme_complete
+    )
+
+```
+
+# Save Image
+
+Save your image for sharing. Be sure to use the `#TidyTuesday` hashtag in your post on twitter! 
+
+```{r}
+camcorder::gg_playback()
+
+
+```
