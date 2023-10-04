@@ -9,6 +9,13 @@
 
 Click on header or the chart for the code.
 
+
+## [2023-09-26: Richmond Way](https://github.com/sturbull/tidytuesday/blob/master/code/2023_09_26_tidy_tuesday.Rmd)
+
+<a href='https://github.com/sturbull/tidytuesday/blob/master/outputs/RichmondWay_2023_09_27.png'>
+<img src='outputs/RichmondWay_2023_09_27.png'/></a>
+
+
 ## [2023-09-19: CRAN Package Authors](https://github.com/sturbull/tidytuesday/blob/master/code/2023_09_19_tidy_tuesday.Rmd)
 
 <a href='https://github.com/sturbull/tidytuesday/blob/master/outputs/CRAN_Package_Authors_2023-09-19.png'>
