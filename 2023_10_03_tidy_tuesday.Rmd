@@ -1,0 +1,320 @@
+---
+title: "TidyTemplate"
+date: 2023-10-04
+output: html_document
+---
+
+# TidyTuesday
+
+Join the R4DS Online Learning Community in the weekly #TidyTuesday event!
+Every week we post a raw dataset, a chart or article related to that dataset, and ask you to explore the data.
+While the dataset will be “tamed”, it will not always be tidy! As such you might need to apply various R for Data Science techniques to wrangle the data into a true tidy format.
+The goal of TidyTuesday is to apply your R skills, get feedback, explore other’s work, and connect with the greater #RStats community!
+As such we encourage everyone of all skills to participate!
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(tidytuesdayR)
+library(camcorder)
+library(here)
+library(glue)
+library(ggtext)
+library(showtext)
+library(extrafont)
+```
+
+
+```{R}
+tt_source <- "Grants.gov"
+bg_color <- "#f1faee"
+txt_color <- "#003049"
+txt_color2 <- "#c1121f"
+
+yellow <- "#FFB702"  
+blue <- "#1E9BD5"
+green <- "#20C29D"
+light_blue <- "#00E7EC"
+red <- "#FF5674"
+
+tt_family <- "montserrat"
+tt_family_2 <- "ubuntu"
+font_add_google("Montserrat", tt_family)
+font_add_google("Ubuntu", tt_family_2)
+
+font_add("fa-brands",
+         regular = here("Assets","Fonts","fontawesome-free-6.4.2-web","webfonts","fa-brands-400.ttf"))
+font_add("fa-solid",
+         regular = here("Assets","Fonts","fontawesome-free-6.4.2-web","webfonts","fa-solid-900.ttf"))
+font_add("fa-regular",
+         regular = here("Assets","Fonts","fontawesome-free-6.4.2-web","webfonts","fa-regular-400.ttf"))
+showtext_auto(enable = T) 
+
+X  <- str_glue("<span style='font-family:fa-brands'>&#xe61b;</span>")
+GH <- str_glue("<span style='font-family:fa-brands'>&#xf09b;</span>")
+MN <- str_glue("<span style='font-family:fa-brands'>&#xf4f6;</span>")
+DT <- str_glue("<span style='font-family:fa-brands'>&#xf1c0;</span>")
+
+tt_caption <- str_glue(
+  "Steven Turnbull #TidyTuesday 2023-10-03<br>
+  {X} @Turdbull. {GH} @sturbull. {MN} @turdbull<br>
+  Data: US Government Grant Opportunities - Grants.gov
+  "
+)
+
+tt_title_text    <- str_glue("US Government Grant Opportunities (2023-10-03)")
+
+tt_subtitle_text <- str_glue("What are the biggest grants that are currently posted?") 
+
+```
+
+# Load the weekly Data
+
+Download the weekly data and make available in the `tt` object.
+
+```{r Load}
+
+tt <- tt_load("2023-10-03")
+
+```
+
+
+# Readme
+
+Take a look at the readme for the weekly data to get insight on the dataset.
+This includes a data dictionary, source, and a link to an article on the data.
+
+```{r Readme, eval = interactive()}
+
+tt
+
+```
+
+
+# Glimpse Data
+
+Take an initial look at the format of the data available.
+
+```{r Glimpse}
+
+tt %>% 
+  map(glimpse)
+
+tt$grants %>%
+  arrange(desc(estimated_funding))
+
+plot_df %>%
+  arrange(desc(estimated_funding))
+```
+
+# Wrangle
+
+Explore the data and process it into a nice format for plotting! Access each dataset by name by using a dollarsign after the `tt` object and then the name of the data set.
+
+```{r Wrangle}
+
+complete_df <- tt$grants %>%
+  left_join(tt$grant_opportunity_details %>%
+              select(opportunity_id,funding_opportunity_title,matches("^category")) %>%
+              select(-category_explanation),
+            by = c("opportunity_id")) %>%
+  mutate(multiple_Cat = ifelse(rowSums(select(., starts_with("category"))) > 1, TRUE, FALSE)) %>%
+  mutate(category = case_when(
+    multiple_Cat ~ "multiple",
+    category_science ~ "science",
+    category_arts ~"arts",
+    category_agriculture ~ "agriculture",
+    category_arts ~ "arts",
+    category_business ~ "business",
+    category_community_development ~ "community_development",
+    category_consumer_protection ~ "consumer_protection",
+    category_disaster ~ "disaster",
+    category_education ~ "education",
+    category_employment ~ "employment",
+    category_energy ~ "energy",
+    category_environment ~ "environment",
+    category_food ~ "food",
+    category_health ~ "health",
+    category_housing ~ "housing",
+    category_humanities ~ "humanities",
+    category_iija ~ "iija",
+    category_income_security ~ "income_security",
+    category_info ~ "info",
+    category_law ~ "law",
+    category_natural_resources ~ "natural_resources",
+    category_opportunity_zone ~ "opportunity_zone",
+    category_regional_development ~ "regional_development",
+    category_science ~ "science",
+    category_transportation ~ "transportation",
+    category_other ~ "other",
+    TRUE ~ NA_character_
+  )) 
+
+plot_df <- complete_df %>%
+  filter(estimated_funding>0) %>%
+  filter(!is.na(estimated_funding)) %>%
+  filter(opportunity_status == "Posted") %>%
+  filter(!is.na(posted_date),
+         !is.na(close_date)) %>%
+  mutate(size= estimated_funding/max(estimated_funding)) %>%
+  mutate(size_clean=(estimated_funding/max(estimated_funding))*70) %>%
+  select(opportunity_id,funding_opportunity_title,agency_name,estimated_funding,
+         size,size_clean,posted_date,close_date,category) %>%
+  mutate(opportunity_id = fct_reorder(as.character(opportunity_id), posted_date)) %>%
+  mutate(opportunity_id_number = as.numeric(opportunity_id)) %>%
+  arrange(opportunity_id_number) %>%
+  mutate(category = str_replace_all(category,"_"," ")) %>%
+  mutate(category = str_to_title(category)) %>%
+  mutate(category = ifelse(category == "Iija","IIJA",category)) %>%
+  mutate(label = paste0(str_wrap(funding_opportunity_title,65),"\n",
+                        agency_name,"\n",
+                        "Esimated Funding: $",scales::comma(estimated_funding))) %>%
+  mutate(label_clean = ifelse(size>0.2,label,NA)) 
+
+
+plot_update<-plot_df %>%
+  mutate(xmin=NA,xmax=NA)
+for(i in 1:nrow(plot_df)){
+  if(i == 1){
+    plot_update[i,"xmin"] <- 0
+    plot_update[i,"xmax"] <- plot_update[i,"size_clean"]
+  }else{
+    plot_update[i,"xmin"] <- pull(plot_update[i-1,"xmax"]) + 0.1
+    plot_update[i,"xmax"] <- pull(plot_update[i,"xmin"]) + plot_update[i,"size_clean"]
+  }
+}
+
+```
+
+
+# Visualize
+```{R}
+gg_record(dir = here("outputs","2023-10-03"),
+          device = "png",
+          width = 7, height = 7, 
+          units = "in", dpi = 320)
+```
+# Visualize
+
+Using your processed dataset, create your unique visualization.
+```{r}
+#set theme
+tt_theme <- function() {
+  theme(
+    panel.grid = element_blank(),
+    axis.ticks.y = element_blank(),
+    axis.text.y = element_blank(),
+    panel.border = element_blank(),
+    plot.background = element_rect(colour=txt_color,fill = bg_color),
+    panel.background = element_rect(colour=bg_color,fill = bg_color),
+    axis.line.x = element_line(colour= txt_color,
+                               arrow = grid::arrow(length = unit(0.3, "cm"), 
+                                                       ends = "last")
+                               ),
+    plot.title.position = "plot",
+    plot.title = element_textbox_simple(
+      halign = 0.5,
+      tt_family,
+      color = txt_color,
+      face = "bold",
+      size = 80,
+      margin = margin(t = 0, r = 0, b = 0, l = 0)
+    ),
+    
+    plot.subtitle = element_textbox_simple(
+      halign = 0.5,
+      tt_family_2,
+      color = txt_color2,
+      #face = "bold",
+      size = 55,
+      margin = margin(t = 0, r = 0, b = 0, l = 0)
+    ),
+    
+    legend.position = c(0.2,0.75),
+    legend.background = element_rect(colour = txt_color,fill = bg_color),
+    legend.title = element_text(size=45,colour = txt_color),
+    legend.text = element_text(size=20,colour = txt_color),
+    legend.spacing.x = unit(0.2,"cm"),
+    legend.spacing.y = unit(0.2,"cm"),
+    legend.key.width = unit(0.5, "cm"),
+    legend.key.height = unit(0.5, "cm"),
+    legend.title.align = 0.5,
+    axis.title = element_blank(),
+    axis.text = element_text(size= 45, colour = txt_color),
+    
+     
+     plot.caption = element_textbox_simple(
+      family = tt_family, 
+      color = txt_color,
+      size = 25,
+            lineheight = 0.3,
+
+      margin = margin(t = 10, r = 0, b = 0, l = 0)
+    ),
+    plot.caption.position = "plot",
+    
+  )
+}
+```
+Using your processed dataset, create your unique visualization.
+
+```{r Visualize}
+#https://www.r-bloggers.com/2013/02/the-paul-tol-21-color-salute/
+tol21rainbow = c("#771155", "#AA4488", "#CC99BB", "#114477", "#4477AA", "#77AADD", "#117777", "#44AAAA", "#77CCCC", "#117744", "#44AA77", "#88CCAA", "#777711", "#AAAA44", "#DDDD77", "#774411", "#AA7744", "#DDAA77", "#771122", "#AA4455", "#DD7788")
+
+
+
+plot_update %>%
+  ggplot() +
+  geom_rect(aes(xmin= xmin,
+                xmax = xmax,
+                ymin = as.Date(posted_date,"%Y-%m-%d"),
+                ymax = as.Date(close_date,"%Y-%m-%d"),
+                fill=category),
+            colour="black",linewidth=0.0,
+            alpha=0.9) +
+  ggrepel::geom_text_repel(aes(x=(xmin+xmax)/2,
+                               y=as.Date(posted_date,"%Y-%m-%d"),
+                               label = label_clean,
+                               colour=category,
+                               ),
+                           nudge_y = -1600,
+                           nudge_x=4,
+                           direction = "y",  
+                           size=7.5,force = 5,point.padding = 0.1,max.overlaps = 2,
+                           segment.colour=adjustcolor("black",0.5),
+                           lineheight	=0.3,
+                           min.segment.length = 0.5, # Adjust this value as needed
+                           box.padding = 0.25,
+                           arrow = arrow(length = unit(0.010, "npc"))
+  ) +
+  scale_fill_manual(values = tol21rainbow) +
+  scale_colour_manual(values = tol21rainbow) +
+  scale_y_date(limits = as.Date(c("2010-01-01", "2025-01-01"))) +
+  guides(color = "none") + 
+  coord_flip() +
+  labs(
+    title = tt_title_text,
+    subtitle = tt_subtitle_text,
+    fill = "Grant Category",
+    caption = tt_caption
+  ) +
+  tt_theme()
+
+
+```
+
+# Save Image
+
+Save your image for sharing. Be sure to use the `#TidyTuesday` hashtag in your post on twitter! 
+
+```{r}
+camcorder::gg_playback()
+# This will save your most recent plot
+ggsave(
+  filename = "My TidyTuesday Plot.png",
+  device = "png")
+
+```
