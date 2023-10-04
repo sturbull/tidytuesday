@@ -9,6 +9,10 @@
 
 Click on header or the chart for the code.
 
+## [2023-10-03: US Grants](https://github.com/sturbull/tidytuesday/blob/master/code/2023_10_03_tidy_tuesday.Rmd)
+
+<a href='https://github.com/sturbull/tidytuesday/blob/master/outputs/US_Grants_2023_10_04.png'>
+<img src='outputs/US_Grants_2023_10_04.png'/></a>
 
 ## [2023-09-26: Richmond Way](https://github.com/sturbull/tidytuesday/blob/master/code/2023_09_26_tidy_tuesday.Rmd)
 
