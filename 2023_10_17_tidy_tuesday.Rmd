@@ -1,0 +1,251 @@
+---
+title: "TidyTemplate"
+date: 2023-10-17
+output: html_document
+---
+
+# TidyTuesday
+
+Join the R4DS Online Learning Community in the weekly #TidyTuesday event!
+Every week we post a raw dataset, a chart or article related to that dataset, and ask you to explore the data.
+While the dataset will be “tamed”, it will not always be tidy! As such you might need to apply various R for Data Science techniques to wrangle the data into a true tidy format.
+The goal of TidyTuesday is to apply your R skills, get feedback, explore other’s work, and connect with the greater #RStats community!
+As such we encourage everyone of all skills to participate!
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(tidytuesdayR)
+#library(camcorder)
+library(purrr)
+library(here)
+library(glue)
+library(stringr)
+library(ggtext)
+library(showtext)
+library(extrafont)
+library(sysfonts)
+library(taylor)
+library(fontawesome)
+library(ggridges)
+library(ggplot2)
+taylor::album_palettes$folklore
+```
+
+
+```{R}
+tt_source <- "taylor R package - W. Jake Thompson"
+bg_color <- "#5D4E5D"
+txt_color <- "#D1A0C7"
+txt_color2 <- "#F5E8E2"
+
+yellow <- "#FFB702"  
+blue <- "#1E9BD5"
+green <- "#20C29D"
+light_blue <- "#00E7EC"
+red <- "#FF5674"
+
+tt_family <- "montserrat"
+tt_family_2 <-  "pacifico"
+
+
+font_add_google("Montserrat", tt_family)
+font_add_google("Pacifico", tt_family_2)
+
+font_add("fa-brands",
+         regular = here("Assets","Fonts","fontawesome-free-6.4.2-web","webfonts","fa-brands-400.ttf"))
+font_add("fa-solid",
+         regular = here("Assets","Fonts","fontawesome-free-6.4.2-web","webfonts","fa-solid-900.ttf"))
+font_add("fa-regular",
+         regular = here("Assets","Fonts","fontawesome-free-6.4.2-web","webfonts","fa-regular-400.ttf"))
+showtext.auto()
+X  <- str_glue("<span style='font-family:fa-brands'>&#xe61b;</span>")
+GH <- str_glue("<span style='font-family:fa-brands'>&#xf09b;</span>")
+MN <- str_glue("<span style='font-family:fa-brands'>&#xf4f6;</span>")
+DT <- str_glue("<span style='font-family:fa-brands'>&#xf1c0;</span>")
+
+tt_caption <- str_glue(
+  "Steven Turnbull #TidyTuesday 2023-10-17<br>
+  {X} @Turdbull. {GH} @sturbull. {MN} @turdbull<br>
+  Data: {tt_source}
+  "
+)
+
+tt_title_text    <- str_glue("Characteristics of Taylor Swift's Albums")
+
+tt_subtitle_text <- str_glue("") 
+album_palettes$`1989`
+
+```
+
+# Load the weekly Data
+
+Download the weekly data and make available in the `tt` object.
+
+```{r Load}
+
+tt <- tt_load("2023-10-17")
+
+```
+
+
+# Readme
+
+Take a look at the readme for the weekly data to get insight on the dataset.
+This includes a data dictionary, source, and a link to an article on the data.
+
+```{r Readme, eval = interactive()}
+
+tt
+
+```
+
+
+# Glimpse Data
+
+Take an initial look at the format of the data available.
+
+```{r Glimpse}
+
+tt %>% 
+  map(glimpse)
+
+```
+
+# Wrangle
+
+Explore the data and process it into a nice format for plotting! Access each dataset by name by using a dollarsign after the `tt` object and then the name of the data set.
+
+```{r Wrangle}
+df<-tt$taylor_album_songs
+
+df_clean <- df %>% 
+  pivot_longer(cols = c(danceability,
+                        energy,
+                        key,
+                        loudness,
+                        acousticness,
+                        liveness,
+                        valence,
+                        tempo,
+                        duration_ms),
+               names_to = "Variable",values_to = "Value") %>%
+  mutate(Variable = str_to_title(Variable)) %>%
+  mutate(album_name = factor(album_name,album_levels))
+```
+
+
+# Visualize
+
+Using your processed dataset, create your unique visualization.
+
+
+```{R}
+camcorder::gg_record(dir = here("outputs","2023-10-17"),
+          device = "png",
+          width = 8, height = 8,
+          units = "in", dpi = 900)
+```
+
+```{R}
+#set theme
+tt_theme <- function() {
+  theme(
+    plot.background = element_rect(colour=bg_color,fill = bg_color),
+    panel.background = element_rect(colour=bg_color,fill = bg_color),
+    
+    strip.text = element_text(family = tt_family, color = txt_color2,size=100),
+    
+    plot.title.position = "plot",
+    plot.title = element_textbox_simple(
+      halign = 0.5,
+      tt_family_2,
+      color = txt_color,
+      face = "bold",
+      size = 300,
+      margin = margin(t = 10, r = 0, b = 0, l = 0)
+    ),
+    
+    plot.subtitle = element_textbox_simple(
+      halign = 0.0,
+      tt_family,
+      color = txt_color2,
+      #face = "bold",
+      size = 50,
+      margin = margin(t = 10, r = 0, b = 0, l = 0)
+    ),
+    
+    plot.caption = element_textbox_simple(
+      family = tt_family, 
+      color = txt_color,
+      size = 80,
+      lineheight = 0.1,
+      
+      margin = margin(t = 10, r = 0, b = 0, l = 0)
+    ),
+    plot.caption.position = "plot",
+    
+    axis.text.x = element_text(family = tt_family, colour = txt_color,
+                               size=60,vjust = 0.8),
+    axis.text.y = element_text(family = tt_family, colour = txt_color2,
+                               size=75,hjust = 1),
+    # legend.title = element_text(family = tt_family, colour = txt_color2,
+    #                             size=85,lineheight = 0.2,
+    #                             margin = margin(t = 0, r = 0, b = 0, l = 0) 
+    #                             ),
+    # legend.text = element_text(family = tt_family, colour = txt_color2,
+    #                            size=60,lineheight = 0.2,hjust = 0),
+    # legend.spacing.x = unit(0.2,"cm"),
+    # legend.spacing.y = unit(0.2,"cm"),
+    # legend.key.width = unit(0.5, "cm"),
+    # legend.key.height = unit(0.5, "cm"),
+    # legend.title.align = 0.5,
+
+    legend.position = "none",
+    plot.margin = margin(t = 5, r = 5, b = 5, l = 5)
+    
+    
+  )
+}
+```
+
+
+```{r Visualize}
+options(scipen = 9)
+df_clean %>%
+  ggplot() +
+  geom_density_ridges_gradient(
+    aes(
+      x = Value,y = album_name,
+      group = album_name,
+      fill = album_name
+    )
+  ) +
+  labs(x = "",y="",     
+       fill="Album",
+       caption = tt_caption,
+       title = tt_title_text,
+       subtitle = tt_subtitle_text) +
+  theme_void()+
+  facet_wrap("Variable",scales = "free_x") +
+  
+  guides(fill = guide_legend(reverse = TRUE)) +
+scale_fill_albums() +
+  tt_theme() 
+
+```
+
+# Save Image
+
+Save your image for sharing. Be sure to use the `#TidyTuesday` hashtag in your post on twitter! 
+
+```{r}
+
+# # This will save your most recent plot
+# ggsave(
+#   filename = here("outputs","2023-10-17",paste0("2023_10_17_tidy_tuesday.png")),
+#   device = "png",dpi=900,height = 8,width = 8)
+
+```
