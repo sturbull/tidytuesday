@@ -76,8 +76,6 @@ tt_caption <- str_glue(
 tt_title_text    <- str_glue("Characteristics of Taylor Swift's Albums")
 
 tt_subtitle_text <- str_glue("") 
-album_palettes$`1989`
-
 ```
 
 # Load the weekly Data
@@ -133,7 +131,8 @@ df_clean <- df %>%
                         duration_ms),
                names_to = "Variable",values_to = "Value") %>%
   mutate(Variable = str_to_title(Variable)) %>%
-  mutate(album_name = factor(album_name,album_levels))
+  mutate(album_name = factor(album_name,album_levels)) %>%
+  mutate(album_name = fct_rev(album_name))
 ```
 
 
@@ -145,8 +144,8 @@ Using your processed dataset, create your unique visualization.
 ```{R}
 camcorder::gg_record(dir = here("outputs","2023-10-17"),
           device = "png",
-          width = 8, height = 8,
-          units = "in", dpi = 900)
+          width = 7, height = 7,
+          units = "in", dpi = 600)
 ```
 
 ```{R}
@@ -156,7 +155,8 @@ tt_theme <- function() {
     plot.background = element_rect(colour=bg_color,fill = bg_color),
     panel.background = element_rect(colour=bg_color,fill = bg_color),
     
-    strip.text = element_text(family = tt_family, color = txt_color2,size=100),
+    strip.text = element_text(family = tt_family, color = txt_color2,size=70,
+                              margin = margin(t = 1, r = 0, b = 1, l = 0)),
     
     plot.title.position = "plot",
     plot.title = element_textbox_simple(
@@ -164,7 +164,7 @@ tt_theme <- function() {
       tt_family_2,
       color = txt_color,
       face = "bold",
-      size = 300,
+      size = 175,
       margin = margin(t = 10, r = 0, b = 0, l = 0)
     ),
     
@@ -173,24 +173,24 @@ tt_theme <- function() {
       tt_family,
       color = txt_color2,
       #face = "bold",
-      size = 50,
+      size = 20,
       margin = margin(t = 10, r = 0, b = 0, l = 0)
     ),
     
     plot.caption = element_textbox_simple(
       family = tt_family, 
       color = txt_color,
-      size = 80,
-      lineheight = 0.1,
+      size = 50,
+      lineheight = 0.2,
       
       margin = margin(t = 10, r = 0, b = 0, l = 0)
     ),
     plot.caption.position = "plot",
     
     axis.text.x = element_text(family = tt_family, colour = txt_color,
-                               size=60,vjust = 0.8),
+                               size=50,vjust = 0.8),
     axis.text.y = element_text(family = tt_family, colour = txt_color2,
-                               size=75,hjust = 1),
+                               size=45,hjust = 1),
     # legend.title = element_text(family = tt_family, colour = txt_color2,
     #                             size=85,lineheight = 0.2,
     #                             margin = margin(t = 0, r = 0, b = 0, l = 0) 
@@ -231,7 +231,7 @@ df_clean %>%
   theme_void()+
   facet_wrap("Variable",scales = "free_x") +
   
-  guides(fill = guide_legend(reverse = TRUE)) +
+  #guides(fill = guide_legend(reverse = TRUE)) +
 scale_fill_albums() +
   tt_theme() 
 
