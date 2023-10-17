@@ -9,6 +9,11 @@
 
 Click on header or the chart for the code.
 
+## [2023-10-10: Haunted Places in the US](https://github.com/sturbull/tidytuesday/blob/master/code/2023_10_17_tidy_tuesday.Rmd)
+
+<a href='https://github.com/sturbull/tidytuesday/blob/master/outputs/TaylorSwift_2023_10_17.png'>
+<img src='outputs/Taylor_Swift_2023_10_17.png'/></a>
+
 ## [2023-10-10: Haunted Places in the US](https://github.com/sturbull/tidytuesday/blob/master/code/2023_10_10_tidy_tuesday.Rmd)
 
 <a href='https://github.com/sturbull/tidytuesday/blob/master/outputs/Haunted_Places_2023_10_11.png'>
