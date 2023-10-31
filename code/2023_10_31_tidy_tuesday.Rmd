@@ -229,8 +229,22 @@ cowplot::draw_image(png::readPNG(here("outputs", "word_freq.png"))) +
   tt_theme()
 ```
 
-```{R}
+# Save Image
 
+Save your image for sharing. Be sure to use the `#TidyTuesday` hashtag in your post on twitter! 
+
+```{r}
+
+# This will save your most recent plot
+ggsave(
+  filename = here("outputs","Horror_legends_2023_10_31.png"),
+  device = "png",
+  dpi=600)
+
+```
+
+```{R}
+#interactive test
 # Generate word cloud
 my_graph <- wordcloud2(data = word_freqs_df,minSize = 2.5,
                        size = 2,backgroundColor = "black",
@@ -247,16 +261,4 @@ webshot2::webshot(here("outputs","tidytuesday_snopes.html"),here("outputs","Horr
 
 
 
-# Save Image
 
-Save your image for sharing. Be sure to use the `#TidyTuesday` hashtag in your post on twitter! 
-
-```{r}
-
-# This will save your most recent plot
-ggsave(
-  filename = here("outputs","Horror_legends_2023_10_31.png"),
-  device = "png",
-  dpi=600)
-
-```
