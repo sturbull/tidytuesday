@@ -30,7 +30,7 @@ library(wordcloud)
 library(wordcloud2)
 library(ggwordcloud)
 library(ggplotify)
-
+library(ggforce)
 ```
 
 ```{R}
@@ -259,6 +259,41 @@ htmlwidgets::saveWidget(my_graph,here("outputs","tidytuesday_snopes.html"),selfc
 webshot2::webshot(here("outputs","tidytuesday_snopes.html"),here("outputs","Horror_legends_2023_10_31.png"), delay =3, vwidth = 480, vheight=480)
 ```
 
+```{R}
+#using ggplot
+word_freqs_df %>%
+  ggplot(aes(label=word,size=freq, colour=freq)) +
+  # Geoms
+    geom_text_wordcloud(rm_outside = TRUE,eccentricity = 1,
+                        mask = png::readPNG(here("assets","ghost.png"))
+                        ) +
+    
+    # Scales
+    # To better match the human area perception, we can use the power_trans scale with a factor of 1/.7
+    scale_size_area(max_size = 40, trans = ggforce::power_trans(1/0.7)) + 
+    scale_color_gradient(low = "white",high = red)+ 
+    coord_cartesian(clip = 'off') +
+  labs(title = tt_title_text,
+       subtitle = tt_subtitle_text,
+       caption = tt_caption) +
+  tt_theme() 
+```
+
+
+```{R}
+
+# Create Voronoi plot
+ggplot(word_freqs_df %>% filter(freq>4), aes(x = word, y = freq, label = word, fill = freq)) +
+  geom_voronoi_tile(aes(group = -1), color = "black") +
+  geom_text(aes(label = word), vjust = 1.5) +
+scale_fill_viridis_c(option = "A") +
+  labs(title = tt_title_text,
+       subtitle = tt_subtitle_text,
+       caption = tt_caption,
+       x = "",
+       y = "") +
+  tt_theme()
+```
 
 
 
