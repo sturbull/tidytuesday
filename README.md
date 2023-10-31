@@ -9,6 +9,12 @@
 
 Click on header or the chart for the code.
 
+## [2023-10-31: Horror Legends](https://github.com/sturbull/tidytuesday/blob/master/code/2023_10_31_tidy_tuesday.Rmd)
+
+<a href='https://github.com/sturbull/tidytuesday/blob/master/outputs/Horror_legends_2023-10-31.png'>
+<img src='outputs/Horror_legends_2023-10-31.png'/></a>
+
+
 ## [2023-10-17: Taylor Swift Albums](https://github.com/sturbull/tidytuesday/blob/master/code/2023_10_17_tidy_tuesday.Rmd)
 
 <a href='https://github.com/sturbull/tidytuesday/blob/master/outputs/TaylorSwift_2023_10_17.png'>
