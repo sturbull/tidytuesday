@@ -1,0 +1,262 @@
+---
+title: "TidyTemplate"
+date: 2023-10-31
+output: html_document
+---
+
+# TidyTuesday
+
+Join the R4DS Online Learning Community in the weekly #TidyTuesday event!
+Every week we post a raw dataset, a chart or article related to that dataset, and ask you to explore the data.
+While the dataset will be “tamed”, it will not always be tidy! As such you might need to apply various R for Data Science techniques to wrangle the data into a true tidy format.
+The goal of TidyTuesday is to apply your R skills, get feedback, explore other’s work, and connect with the greater #RStats community!
+As such we encourage everyone of all skills to participate!
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE)
+
+
+library(tidyverse)
+library(tidytuesdayR)
+library(camcorder)
+library(here)
+library(glue)
+library(ggtext)
+library(showtext)
+library(extrafont)
+library(tm)
+library(wordcloud)
+library(wordcloud2)
+library(ggwordcloud)
+library(ggplotify)
+
+```
+
+```{R}
+tt_source <- "Snopes.com"
+bg_color <- adjustcolor("black",alpha.f = 1)
+txt_color <- "#EE4B2B"
+txt_color2 <- "#ccbfd0"
+
+yellow <- "#FFB702"  
+blue <- "#1E9BD5"
+green <- "#20C29D"
+light_blue <- "#00E7EC"
+red <- "#FF5674"
+
+tt_family <- "montserrat"
+tt_family_2 <-  "nosifer"
+
+
+font_add_google("Montserrat", tt_family)
+font_add_google("Nosifer", tt_family_2)
+
+font_add("fa-brands",
+         regular = here("Assets","Fonts","fontawesome-free-6.4.2-web","webfonts","fa-brands-400.ttf"))
+font_add("fa-solid",
+         regular = here("Assets","Fonts","fontawesome-free-6.4.2-web","webfonts","fa-solid-900.ttf"))
+font_add("fa-regular",
+         regular = here("Assets","Fonts","fontawesome-free-6.4.2-web","webfonts","fa-regular-400.ttf"))
+showtext_auto(enable = T) 
+
+X  <- str_glue("<span style='font-family:fa-brands'>&#xe61b;</span>")
+GH <- str_glue("<span style='font-family:fa-brands'>&#xf09b;</span>")
+MN <- str_glue("<span style='font-family:fa-brands'>&#xf4f6;</span>")
+DT <- str_glue("<span style='font-family:fa-brands'>&#xf1c0;</span>")
+
+tt_caption <- str_glue(
+  "Steven Turnbull #TidyTuesday 2023-10-31<br>
+  {X} @Turdbull {GH} @sturbull {MN} @turdbull<br>
+  Data: Snopes.com
+  "
+)
+
+tt_title_text    <- str_glue("Horror Legends")
+
+tt_subtitle_text <- str_glue("Exploring themes from horror legends reported on by Snopes.com") 
+
+```
+
+# Load the weekly Data
+
+Download the weekly data and make available in the `tt` object.
+
+```{r Load}
+
+tt <- tt_load("2023-10-31")
+
+```
+
+
+# Readme
+
+Take a look at the readme for the weekly data to get insight on the dataset.
+This includes a data dictionary, source, and a link to an article on the data.
+
+```{r Readme, eval = interactive()}
+
+tt
+
+```
+
+
+# Glimpse Data
+
+Take an initial look at the format of the data available.
+
+```{r Glimpse}
+
+tt %>% 
+  map(glimpse)
+
+```
+
+# Wrangle
+
+Explore the data and process it into a nice format for plotting! Access each dataset by name by using a dollarsign after the `tt` object and then the name of the data set.
+
+```{r Wrangle}
+
+df <- tt$horror_articles
+
+
+
+```
+
+
+# Visualize
+
+Using your processed dataset, create your unique visualization.
+
+```{r Visualize}
+
+corpus <- Corpus(VectorSource(df$claim))
+
+# Preprocess the corpus
+corpus <- tm_map(corpus, content_transformer(tolower))
+corpus <- tm_map(corpus, removePunctuation)
+corpus <- tm_map(corpus, removeNumbers)
+corpus <- tm_map(corpus, removeWords, stopwords("en"))
+corpus <- tm_map(corpus, stripWhitespace)
+
+# Create a term document matrix
+tdm <- TermDocumentMatrix(corpus)
+
+# Convert term document matrix to a matrix
+m <- as.matrix(tdm)
+
+# Get word frequencies
+word_freqs <- sort(rowSums(m), decreasing = TRUE)
+
+# Create a data frame from word frequencies
+word_freqs_df <- data.frame(word = names(word_freqs), freq = word_freqs) %>%
+  mutate(word = str_replace(word, "internetcirculated","internet-circulated"),
+         word = str_replace(word, "lsd","LSD"),
+         word = str_replace(word, "schoolkids","school-kids"),
+         word = str_replace(word, "trickortreaters","trick-or-treaters"),
+         word = str_replace(word, "manbeefcom","manbeef.com")
+         
+  )
+
+png(here("outputs", "word_freq.png"),
+    width = 2.5, height = 2.5, units = "in", res = 600,
+    family = "montserrat",bg = bg_color)
+
+# Generate word cloud
+wordcloud(words = word_freqs_df$word, freq = word_freqs_df$freq, min.freq = 2, scale=c(8,.2),
+          colors=brewer.pal(8, "Reds"),
+          family = tt_family_2  # Using the scary Google Font
+) 
+dev.off()
+```
+
+
+```{R}
+gg_record(dir = here("outputs","2023-10-31"),
+          device = "png",
+          width = 7, height = 7, 
+          units = "in", dpi = 600)
+```
+
+```{R}
+#set theme
+tt_theme <- function() {
+  theme(
+    plot.background = element_rect(colour=bg_color,fill = bg_color),
+    panel.background = element_rect(colour=bg_color,fill = bg_color),
+    
+    plot.title.position = "plot",
+    plot.title = element_textbox_simple(
+      halign = 0.5,
+      tt_family_2,
+      color = txt_color,
+      face = "bold",
+      size = 180,
+      margin = margin(t = 5, r = 0, b = 0, l = 0)
+    ),
+    
+    plot.subtitle = element_textbox_simple(
+      halign = 0.5,
+      tt_family,
+      color = txt_color2,
+      #face = "bold",
+      size = 80,
+      margin = margin(t = 1, r = 0, b = 5, l = 0)
+    ),
+    
+    plot.caption = element_textbox_simple(
+      family = tt_family, 
+      color = txt_color,
+      size = 60,
+      lineheight = 0.2,
+      margin = margin(t = 1, r = 0, b = 5, l = 5)
+    ),
+    plot.caption.position = "plot",
+    
+    legend.position = "none"
+    
+  )
+}
+```
+
+```{R}
+cowplot::ggdraw() +
+cowplot::draw_image(png::readPNG(here("outputs", "word_freq.png"))) +
+  labs(title = tt_title_text,
+       subtitle = tt_subtitle_text,
+       caption = tt_caption) +
+  tt_theme()
+```
+
+```{R}
+
+# Generate word cloud
+my_graph <- wordcloud2(data = word_freqs_df,minSize = 2.5,
+                       size = 2,backgroundColor = "black",
+                       color="random-light", 
+                       fontFamily = tt_family_2
+) 
+
+# save it in html
+
+htmlwidgets::saveWidget(my_graph,here("outputs","tidytuesday_snopes.html"),selfcontained = T)
+
+webshot2::webshot(here("outputs","tidytuesday_snopes.html"),here("outputs","Horror_legends_2023_10_31.png"), delay =3, vwidth = 480, vheight=480)
+```
+
+
+
+# Save Image
+
+Save your image for sharing. Be sure to use the `#TidyTuesday` hashtag in your post on twitter! 
+
+```{r}
+
+# This will save your most recent plot
+ggsave(
+  filename = here("outputs","Horror_legends_2023_10_31.png"),
+  device = "png",
+  dpi=600)
+
+```
