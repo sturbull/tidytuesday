@@ -8,6 +8,11 @@
 ***
 
 Click on header or the chart for the code.
+## [2023-11-08: US House Election](https://github.com/sturbull/tidytuesday/blob/master/code/2023_11_08_tidy_tuesday.Rmd)
+
+<a href='https://github.com/sturbull/tidytuesday/blob/master/outputs/US_House_2023_11_08.png'>
+<img src='outputs/US_House_2023_11_08.png'/></a>
+
 
 ## [2023-10-31: Horror Legends](https://github.com/sturbull/tidytuesday/blob/master/code/2023_10_31_tidy_tuesday.Rmd)
 
