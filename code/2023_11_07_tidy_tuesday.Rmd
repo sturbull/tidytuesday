@@ -136,7 +136,14 @@ df_clean <- df %>%
 # Visualize
 
 Using your processed dataset, create your unique visualization.
+```{R}
+camcorder::gg_record(dir = here("outputs","2023-11-07"),
+  device = "png",
+  width = 14, height = 12,
+  units = "in", dpi = 300
+  )
 
+```
 ```{r Visualize}
 #idea adapted from https://github.com/gkaramanis/tidytuesday/blob/master/2023/2023-week_41/haunted_places.R
 
@@ -161,7 +168,6 @@ df_clean$state.reorder <- factor(df_clean$state,
                                             bl[31], "Hawaii", "Alaska", bl[32], "Texas", bl[33:35], "Florida"))
 
 for(YEAR in unique(df_clean$year)){
-  
   df_clean %>% 
     #set to specific year
     filter(year==YEAR) %>%
@@ -172,7 +178,7 @@ for(YEAR in unique(df_clean$year)){
     scale_fill_manual(values = my_colours) +
     facet_wrap(~state.reorder,drop = F,ncol = 11,strip.position = "bottom",
                scales = "free") +
-    theme_void(base_family = tt_family,base_size = 70) +
+    theme_void(base_family = tt_family,base_size = 47) +
     labs(caption = tt_caption,
          title = tt_title_text,
          fill = "Party",
@@ -190,45 +196,46 @@ for(YEAR in unique(df_clean$year)){
       
       plot.title.position = "plot",
       plot.title = element_textbox_simple(
-        halign = 0.5,
+        halign = 0.0,
         tt_family_2,
         color = txt_color,
         face = "bold",
-        size = 250,
-        margin = margin(t = 5, r = 0, b = 0, l = 0)
+        size = 190,
+        margin = margin(t = 2, r = 1, b = 0, l = 1)
       ),
       
       plot.subtitle = element_textbox_simple(
-        halign = 0.5,
+        halign = 0.0,
         tt_family,
         color = txt_color,
         #face = "bold",
-        size = 200,
-        margin = margin(t = 10, r = 0, b = 5, l = 0)
+        size = 180,lineheight = 1,
+        margin = margin(t = 2, r = 0, b = 2, l = 0)
       ),
       
       plot.caption = element_textbox_simple(
         family = tt_family, 
         color = txt_color,
-        size = 70,
-        lineheight = 0.1,
-        margin = margin(t = 50, r = 0, b = 1, l = 1)
+        size = 29,halign = 1,
+        lineheight = 0.185,
+        margin = margin(t = 1, r = 0, b = 0, l = 0)
       ),
       plot.caption.position = "plot",
       
-      legend.position = c(0.9,0.05),
+      legend.position = c(0.92,0.12),
       legend.margin = margin(t = 5, r = 5, b = 5, l = 5),
       legend.box.background = element_rect(color ="black", size = 1),
       legend.title = element_blank(),
       legend.spacing.x = unit(0.5,"lines"),
       legend.direction = "vertical",
-      legend.spacing.y = unit(0, "mm")
+      legend.spacing.y = unit(0, "mm"),
+      legend.text = element_text(size=60)
   )
 
 # This will save your most recent plot
 ggsave(here("outputs","2023-11-07","years",paste0("map_",YEAR,".png")),
        device = "png",
-       width = 14, height = 12, 
-       units = "in", dpi = 600)
+       width = 14, height = 12,
+       units = "in", dpi = 300)
 }  
 ```
