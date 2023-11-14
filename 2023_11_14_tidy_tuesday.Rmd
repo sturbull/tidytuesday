@@ -43,8 +43,8 @@ color_palette <- rep(base_colors, repeats_needed)[1:300]
 ```{R}
 tt_source <- "Diwali Sales Data - Saad Haroon"
 bg_color <- adjustcolor("black",alpha.f = 1)
-txt_color <- "#EE4B2B"
-txt_color2 <- "#ccbfd0"
+txt_color <- "white"
+txt_color2 <- "#FFB702"
 
 yellow <- "#FFB702"  
 blue <- "#1E9BD5"
@@ -173,64 +173,16 @@ edges_clean <-edges %>%
   mutate(random_colour = color_palette[sample(1:12,size = n(),replace = T)]) %>%
   arrange(parent,child) %>%
   mutate(parent=factor(parent)) 
-  
 
-  #filter(str_detect(parent,"Central|Northern|Eastern|Western|Southern"))
+
+#filter(str_detect(parent,"Central|Northern|Eastern|Western|Southern"))
 edges_clean %>%
-write_csv(here("outputs","diwali_sales_edges_clean.csv"))
+  write_csv(here("outputs","diwali_sales_edges_clean.csv"))
 # Creating a graph from the hierarchical data
 graph <- graph_from_data_frame(edges_clean, directed = TRUE)
 
 ```
 
-```{R}
-# Plotting the graph as a radial tree
-ggraph(graph, layout = 'dendrogram',circular=T) + 
-  geom_edge_diagonal(aes(color=random_colour)) +
-  geom_node_point(size=0.1) +
-   # geom_node_text(aes(label = name), 
-   #               size = 3, 
-   #               colour = "black") +
-  theme_void() +
-  scale_color_identity() +
-  theme(
-      plot.background = element_rect(fill = bg_color, color = "black"),
-      plot.margin = margin(10, 20, 10, 10),
-
-      plot.title.position = "plot",
-      plot.title = element_textbox_simple(
-        halign = 0.0,
-        tt_family_2,
-        color = txt_color,
-        face = "bold",
-        size = 190,
-        margin = margin(t = 2, r = 1, b = 0, l = 1)
-      ),
-      
-      plot.subtitle = element_textbox_simple(
-        halign = 0.0,
-        tt_family,
-        color = txt_color,
-        #face = "bold",
-        size = 180,lineheight = 1,
-        margin = margin(t = 2, r = 0, b = 2, l = 0)
-      ),
-      
-      plot.caption = element_textbox_simple(
-        family = tt_family, 
-        color = txt_color,
-        size = 29,halign = 1,
-        lineheight = 0.185,
-        margin = margin(t = 1, r = 0, b = 0, l = 0)
-      ),
-      plot.caption.position = "plot",
-      
-      legend.position = "none"
-     
-  )
-
-ggsave(here("outputs","diwali_sales.svg"),height=15,width=15)
-```
 # Visualize
 
 Using your processed dataset, create your unique visualization.
@@ -239,18 +191,60 @@ Using your processed dataset, create your unique visualization.
 
 ```{R}
 gg_record(dir = here("outputs","2023-11-14"),
-          device = "png",
-          width = 7, height = 7, 
+          device = "svg",
+          width = 15, height = 15, 
           units = "in", dpi = 600)
 ```
 
 ```{r Visualize}
 
 # Plotting the graph as a radial tree
-ggraph(graph, layout = 'dendrogram', circular = TRUE) + 
-  geom_edge_diagonal() +
-  geom_node_point() +
-  theme_void()
+ggraph(graph, layout = 'dendrogram',circular=T) + 
+  geom_edge_diagonal(aes(color=random_colour)) +
+  geom_node_point(size=0.1) +
+  # geom_node_text(aes(label = name), 
+  #               size = 3, 
+  #               colour = "black") +
+  theme_void() +
+  labs(caption = tt_caption,
+       title = tt_title_text)  +  scale_color_identity() +
+  theme(
+    plot.background = element_rect(fill = bg_color, color = "black"),
+    plot.margin = margin(10, 20, 10, 10),
+    
+    plot.title.position = "plot",
+    plot.title = element_textbox_simple(
+      halign = 0.0,
+      tt_family_2,
+      color = txt_color,
+      face = "bold",
+      size = 190,
+      margin = margin(t = 2, r = 1, b = 0, l = 1)
+    ),
+    
+    plot.subtitle = element_textbox_simple(
+      halign = 0.0,
+      tt_family,
+      color = txt_color,
+      #face = "bold",
+      size = 180,lineheight = 1,
+      margin = margin(t = 2, r = 0, b = 2, l = 0)
+    ),
+    
+    plot.caption = element_textbox_simple(
+      family = tt_family, 
+      color = txt_color,
+      size = 29,halign = 1,
+      lineheight = 0.185,
+      margin = margin(t = 1, r = 0, b = 0, l = 0)
+    ),
+    plot.caption.position = "plot",
+    
+    legend.position = "none"
+    
+  )
+
+ggsave(here("outputs","diwali_sales.svg"),height=15,width=15)
 ```
 
 # Save Image
