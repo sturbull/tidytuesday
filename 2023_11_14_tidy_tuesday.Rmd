@@ -1,0 +1,267 @@
+---
+title: "TidyTemplate"
+date: 2023-11-14
+output: html_document
+---
+
+# TidyTuesday
+
+Join the R4DS Online Learning Community in the weekly #TidyTuesday event!
+Every week we post a raw dataset, a chart or article related to that dataset, and ask you to explore the data.
+While the dataset will be “tamed”, it will not always be tidy! As such you might need to apply various R for Data Science techniques to wrangle the data into a true tidy format.
+The goal of TidyTuesday is to apply your R skills, get feedback, explore other’s work, and connect with the greater #RStats community!
+As such we encourage everyone of all skills to participate!
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(tidytuesdayR)
+library(camcorder)
+library(here)
+library(glue)
+library(ggtext)
+library(showtext)
+library(extrafont)
+library(sf)
+library(ggforce)
+library(igraph)
+library(ggraph)
+
+library(RColorBrewer)
+# Choose a color palette (e.g., "Set3" which has 12 distinct colors)
+base_colors <- brewer.pal(name = "Set3", n = 12)
+
+# Calculate the number of times to repeat the base colors
+repeats_needed <- ceiling(300 / length(base_colors))
+
+# Create the color palette of size 300
+color_palette <- rep(base_colors, repeats_needed)[1:300]
+```
+
+```{R}
+tt_source <- "Diwali Sales Data - Saad Haroon"
+bg_color <- adjustcolor("black",alpha.f = 1)
+txt_color <- "#EE4B2B"
+txt_color2 <- "#ccbfd0"
+
+yellow <- "#FFB702"  
+blue <- "#1E9BD5"
+green <- "#20C29D"
+light_blue <- "#00E7EC"
+red <- "#FF5674"
+
+tt_family <- "montserrat"
+tt_family_2 <-  "baloo"
+
+
+font_add_google("Montserrat", tt_family)
+font_add_google("Baloo 2", tt_family_2)
+
+font_add("fa-brands",
+         regular = here("Assets","Fonts","fontawesome-free-6.4.2-web","webfonts","fa-brands-400.ttf"))
+font_add("fa-solid",
+         regular = here("Assets","Fonts","fontawesome-free-6.4.2-web","webfonts","fa-solid-900.ttf"))
+font_add("fa-regular",
+         regular = here("Assets","Fonts","fontawesome-free-6.4.2-web","webfonts","fa-regular-400.ttf"))
+showtext_auto(enable = T) 
+
+X  <- str_glue("<span style='font-family:fa-brands'>&#xe61b;</span>")
+GH <- str_glue("<span style='font-family:fa-brands'>&#xf09b;</span>")
+MN <- str_glue("<span style='font-family:fa-brands'>&#xf4f6;</span>")
+DT <- str_glue("<span style='font-family:fa-brands'>&#xf1c0;</span>")
+
+tt_caption <- str_glue(
+  "Steven Turnbull #TidyTuesday 2023-11-14<br>
+  {X} @Turdbull {GH} @sturbull {MN} @turdbull<br>
+  Data: {tt_source}
+  "
+)
+
+tt_title_text    <- str_glue("Diwali Sales ")
+
+tt_subtitle_text <- str_glue("") 
+
+```
+
+# Load the weekly Data
+
+Download the weekly data and make available in the `tt` object.
+
+```{r Load}
+
+tt <- tt_load("2023-11-14")
+
+```
+
+
+# Readme
+
+Take a look at the readme for the weekly data to get insight on the dataset.
+This includes a data dictionary, source, and a link to an article on the data.
+
+```{r Readme, eval = interactive()}
+
+tt
+
+```
+
+
+# Glimpse Data
+
+Take an initial look at the format of the data available.
+
+```{r Glimpse}
+
+tt %>% 
+  map(glimpse)
+
+```
+
+# Wrangle
+
+Explore the data and process it into a nice format for plotting! Access each dataset by name by using a dollarsign after the `tt` object and then the name of the data set.
+
+```{r Wrangle}
+df <- tt$diwali_sales_data
+edges<-data.frame()
+for(i in 1:nrow(df)){
+  # Creating a parent-child relationship for each level of the hierarchy
+  edge_i <- df[i,] %>%
+    mutate_all(as.character) %>%
+    pivot_longer(cols = c(Zone, State, Product_Category, Product_ID),names_to = "Cat",values_to = "parent") %>%
+    mutate(grp = row_number()) %>%
+    mutate(person = i) %>%
+    mutate(child = lead(parent)) %>%
+    filter(!is.na(child)) %>%
+    select(parent,child,everything())
+  #I don't like this, but sometimes a for loop is the way
+  #We'll loop through and update the child and parent labels based on the previous row
+  for(j in 1:nrow(edge_i)){
+    if(j==1){
+      edge_i$child[j] <- paste0(edge_i$parent[j],"-",edge_i$child[j])
+    }else{
+      edge_i$parent[j] <- edge_i$child[j-1]
+      edge_i$child[j] <- paste0(edge_i$child[j-1],"-",edge_i$child[j])}
+  }
+  
+  edges <- bind_rows(edges, bind_rows(data.frame(parent = "DIWALI SALES",child=edge_i$parent[1]),
+                                      edge_i))
+}
+edges %>%
+  write_csv(here("outputs","diwali_sales_edges2.csv"))
+```
+
+```{R}
+
+edges_clean <-edges %>%
+  mutate(parent = str_replace_all(parent,"DIWALI","1-DIWALI")) %>%
+  fill(person,.direction = "up") %>%
+  group_by(person) %>%
+  # mutate(ZONE_GROUP = ifelse(Cat=="Zone",parent,NA)) %>%
+  # fill(ZONE_GROUP,.direction = "downup") %>%
+  # mutate(STATE_GROUP = ifelse(Cat=="State",parent,NA)) %>%
+  # fill(STATE_GROUP,.direction = "downup") %>%
+  # mutate(PRODUCT_GROUP = ifelse(Cat=="Product_Category",parent,NA)) %>%
+  # fill(PRODUCT_GROUP,.direction = "downup") %>%
+  filter(n()==4) %>%
+  group_by(parent,child) %>%
+  summarise(Amount = sum(as.integer(Amount),na.rm=T)) %>%
+  ungroup() %>%
+  mutate(Amount = ifelse(Amount == 0, sum(as.integer(edges$Amount),na.rm = T),df$Amount)) %>%
+  mutate(random_colour = color_palette[sample(1:12,size = n(),replace = T)]) %>%
+  arrange(parent,child) %>%
+  mutate(parent=factor(parent)) 
+  
+
+  #filter(str_detect(parent,"Central|Northern|Eastern|Western|Southern"))
+edges_clean %>%
+write_csv(here("outputs","diwali_sales_edges_clean.csv"))
+# Creating a graph from the hierarchical data
+graph <- graph_from_data_frame(edges_clean, directed = TRUE)
+
+```
+
+```{R}
+# Plotting the graph as a radial tree
+ggraph(graph, layout = 'dendrogram',circular=T) + 
+  geom_edge_diagonal(aes(color=random_colour)) +
+  geom_node_point(size=0.1) +
+   # geom_node_text(aes(label = name), 
+   #               size = 3, 
+   #               colour = "black") +
+  theme_void() +
+  scale_color_identity() +
+  theme(
+      plot.background = element_rect(fill = bg_color, color = "black"),
+      plot.margin = margin(10, 20, 10, 10),
+
+      plot.title.position = "plot",
+      plot.title = element_textbox_simple(
+        halign = 0.0,
+        tt_family_2,
+        color = txt_color,
+        face = "bold",
+        size = 190,
+        margin = margin(t = 2, r = 1, b = 0, l = 1)
+      ),
+      
+      plot.subtitle = element_textbox_simple(
+        halign = 0.0,
+        tt_family,
+        color = txt_color,
+        #face = "bold",
+        size = 180,lineheight = 1,
+        margin = margin(t = 2, r = 0, b = 2, l = 0)
+      ),
+      
+      plot.caption = element_textbox_simple(
+        family = tt_family, 
+        color = txt_color,
+        size = 29,halign = 1,
+        lineheight = 0.185,
+        margin = margin(t = 1, r = 0, b = 0, l = 0)
+      ),
+      plot.caption.position = "plot",
+      
+      legend.position = "none"
+     
+  )
+
+ggsave(here("outputs","diwali_sales.svg"),height=15,width=15)
+```
+# Visualize
+
+Using your processed dataset, create your unique visualization.
+
+
+
+```{R}
+gg_record(dir = here("outputs","2023-11-14"),
+          device = "png",
+          width = 7, height = 7, 
+          units = "in", dpi = 600)
+```
+
+```{r Visualize}
+
+# Plotting the graph as a radial tree
+ggraph(graph, layout = 'dendrogram', circular = TRUE) + 
+  geom_edge_diagonal() +
+  geom_node_point() +
+  theme_void()
+```
+
+# Save Image
+
+Save your image for sharing. Be sure to use the `#TidyTuesday` hashtag in your post on twitter! 
+
+```{r}
+
+# This will save your most recent plot
+ggsave(
+  filename = "My TidyTuesday Plot.png",
+  device = "png")
+
+```

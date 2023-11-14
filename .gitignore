@@ -49,9 +49,11 @@ tidytuesday_github.Rproj
 /outputs/2023-10-17/
 /outputs/2023-10-31/
 /outputs/2023-11-07/
+/outputs/2023-11-14/
 
 /assets/
 .idea/misc.xml
 .idea/modules.xml
 .idea/tidytuesday_steven.iml
 .idea/vcs.xml
+*.csv
