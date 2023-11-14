@@ -7,6 +7,13 @@
 
 ***
 
+
+Click on header or the chart for the code.
+## [2023-11-14: Diwali Sales](https://github.com/sturbull/tidytuesday/blob/master/code/2023_11_14_tidy_tuesday.Rmd)
+
+<a href='https://github.com/sturbull/tidytuesday/blob/master/outputs/Diwali_Sales_2023_11_14.png'>
+<img src='outputs/Diwali_Sales_2023_11_14.png'/></a>
+
 Click on header or the chart for the code.
 ## [2023-11-07: US House Election](https://github.com/sturbull/tidytuesday/blob/master/code/2023_11_07_tidy_tuesday.Rmd)
 
