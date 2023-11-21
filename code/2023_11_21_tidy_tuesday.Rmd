@@ -172,7 +172,7 @@ ggplot(aes(x = date, y = cumulative_count, colour = location)) +
   ggforce::geom_mark_rect(
     aes(label = "First R-Ladies Event...",
         filter = c(event_number == 1 & location == "inperson")),
-        description = "October 31, 2012: The first R-Ladies meetup 'Introduction to R' occurs in-person in San Francisco.",
+        description = "October 31, 2012: The first R-Ladies meetup 'Introduction to R' occurs inperson in San Francisco.",
 
     label.family = "Roboto",
     colour = "black",con.cap = 0,label.fill = adjustcolor("white",alpha.f = 0.5),
