@@ -1,0 +1,248 @@
+---
+title: "TidyTemplate"
+date: 2023-11-21
+output: html_document
+---
+
+# TidyTuesday
+
+Join the R4DS Online Learning Community in the weekly #TidyTuesday event!
+Every week we post a raw dataset, a chart or article related to that dataset, and ask you to explore the data.
+While the dataset will be “tamed”, it will not always be tidy! As such you might need to apply various R for Data Science techniques to wrangle the data into a true tidy format.
+The goal of TidyTuesday is to apply your R skills, get feedback, explore other’s work, and connect with the greater #RStats community!
+As such we encourage everyone of all skills to participate!
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(tidytuesdayR)
+library(camcorder)
+library(here)
+library(glue)
+library(ggtext)
+library(showtext)
+library(extrafont)
+library(geomtextpath)
+```
+
+```{R}
+tt_source <- "Federica Gazzelloni & https:&sol;&sol;github.com&sol;rladies&sol;meetup_archive"
+bg_color <- "#ffffff"
+txt_color <- "black"
+txt_color2 <- "#20C29D"
+
+yellow <- "#FFB702"  
+blue <- "#1E9BD5"
+green <- "#20C29D"
+light_blue <- "#00E7EC"
+red <- "#FF5674"
+
+tt_family <- "montserrat"
+tt_family_2 <-  "roboto"
+
+
+font_add_google("Montserrat", tt_family)
+font_add_google("Roboto", tt_family_2)
+
+font_add("fa-brands",
+         regular = here("Assets","Fonts","fontawesome-free-6.4.2-web","webfonts","fa-brands-400.ttf"))
+font_add("fa-solid",
+         regular = here("Assets","Fonts","fontawesome-free-6.4.2-web","webfonts","fa-solid-900.ttf"))
+font_add("fa-regular",
+         regular = here("Assets","Fonts","fontawesome-free-6.4.2-web","webfonts","fa-regular-400.ttf"))
+showtext_auto(enable = T) 
+
+X  <- str_glue("<span style='font-family:fa-brands'>&#xe61b;</span>")
+GH <- str_glue("<span style='font-family:fa-brands'>&#xf09b;</span>")
+MN <- str_glue("<span style='font-family:fa-brands'>&#xf4f6;</span>")
+DT <- str_glue("<span style='font-family:fa-brands'>&#xf1c0;</span>")
+
+tt_caption <- str_glue(
+  "Steven Turnbull #TidyTuesday 2023-11-21<br>
+  {X} @Turdbull {GH} @sturbull {MN} @turdbull<br>
+  Data: {tt_source}
+  "
+)
+
+tt_title_text    <- str_glue("R-Ladies Chapter Events")
+
+tt_subtitle_text <- str_glue("The Rise of Online Meetups") 
+```
+
+# Load the weekly Data
+
+Download the weekly data and make available in the `tt` object.
+
+```{r Load}
+
+tt <- tt_load("2023-11-21")
+
+```
+
+
+# Readme
+
+Take a look at the readme for the weekly data to get insight on the dataset.
+This includes a data dictionary, source, and a link to an article on the data.
+
+```{r Readme, eval = interactive()}
+
+tt
+
+```
+
+
+# Glimpse Data
+
+Take an initial look at the format of the data available.
+
+```{r Glimpse}
+
+tt %>% 
+  map(glimpse)
+
+```
+
+# Wrangle
+
+Explore the data and process it into a nice format for plotting! Access each dataset by name by using a dollarsign after the `tt` object and then the name of the data set.
+
+```{r Wrangle}
+
+df <- tt$rladies_chapters %>%
+  arrange(date)
+df_clean <- df %>%
+  mutate(precovid = if_else(date<as.Date('2020-03-24'),T,F)) %>%
+  group_by(date,location,precovid) %>%
+  summarise(count = n_distinct(id),.groups = "drop") %>%
+  group_by(location) %>%
+  mutate(event_number = row_number()) %>%
+  ungroup() %>%
+  mutate(total_count_before_covid = sum(count[precovid==T])) %>%
+  mutate(count = if_else(location == "online" & event_number==1,
+                         count + total_count_before_covid, count)) %>%
+  group_by(location) %>%
+  mutate(cumulative_count = cumsum(count))
+ df %>% filter(row_number() == 4000)
+
+```
+
+
+# Visualize
+
+Using your processed dataset, create your unique visualization.
+```{R}
+camcorder::gg_record(dir = here("outputs","2023-11-21"),
+  device = "png",
+  width = 8, height = 7,
+  units = "in", dpi = 320
+  )
+```
+  
+```{r Visualize}
+df_clean %>%
+ggplot(aes(x = date, y = cumulative_count, colour = location)) +
+  geom_line(linewidth=1.25) +
+
+  geomtextpath::geom_textline(
+    aes(label = str_to_upper(location)),
+    linewidth = 0.25,
+    text_smoothing = 30,
+    family = "Roboto",
+    fontface = "bold",
+    size = 10,
+    vjust = 0, 
+    hjust = 0.1
+  ) +
+   ggforce::geom_mark_rect(
+    aes(label = "COVID Begins...",
+        filter = c(location == "inperson" & between(date, as.Date('2020-03-01'), as.Date('2020-04-30')))),
+        description = "March 24, 2020: Chapters cancel in-person meetups due to the corona virus pandemic. R-Ladies Events pivot online. https://rladies.org/blog/2020-04-24-online-meetups/",
+
+    label.family = "Roboto",
+    colour = "black",con.cap = 0,
+    x0 = as.Date('2016-04-01'),
+    y0 = 2200,
+    label.fontsize = 20,label.lineheight = 0.3,
+    ) +
+  
+  
+  ggforce::geom_mark_rect(
+    aes(label = "First R-Ladies Event...",
+        filter = c(event_number == 1 & location == "inperson")),
+        description = "October 31, 2012: The first R-Ladies meetup 'Introduction to R' occurs in-person in San Francisco.",
+
+    label.family = "Roboto",
+    colour = "black",con.cap = 0,label.fill = adjustcolor("white",alpha.f = 0.5),
+    label.fontsize = 20,label.lineheight = 0.3,
+    ) +
+  
+  ggforce::geom_mark_rect(
+    aes(label = "Over 4,000 Events...",
+        filter = c(date == as.Date('2022-07-28') & location == "online")),
+        description = "July 28, 2022: R-Ladies hits event number 4,000 (online and inperson combined) with the online meetup of rladies-bariloche. ",
+    x0 = as.Date('2018-04-01'),
+    y0 = 3500,
+    label.family = "Roboto",
+    colour = "black",con.cap = 0,label.fill = adjustcolor("white",alpha.f = 0.5),
+    label.fontsize = 20,label.lineheight = 0.3,
+    ) +
+  
+  
+  scale_x_date(limits = c(NA_Date_,as.Date('2023-11-21'))) +
+    scale_y_continuous(labels = scales::comma) +
+  labs(title = tt_title_text,
+       subtitle = tt_subtitle_text,
+       caption = tt_caption,
+       colour = "",
+       x = "Date",
+       y = "Cumulative Count") + 
+ theme( 
+   
+    plot.background = element_rect(colour=bg_color,fill = bg_color),
+    panel.background = element_rect(colour=bg_color,fill = bg_color),
+    
+    plot.title.position = "plot",
+    plot.title = element_textbox_simple(
+      halign = 0.5,
+      tt_family_2,
+      color = txt_color,
+      face = "bold",
+      size = 100,
+      margin = margin(t = 2, r = 0, b = 0, l = 0)
+    ),
+    
+    plot.subtitle = element_textbox_simple(
+      halign = 0.5,
+      tt_family,
+      color = txt_color2,
+      #face = "bold",
+      size = 80,
+      margin = margin(t = 1, r = 0, b = 2, l = 0)
+    ),
+    
+    plot.caption = element_textbox_simple(
+      family = tt_family, 
+      color = txt_color,
+      size = 25,
+      lineheight = 0.25,
+      margin = margin(t = 1, r = 0, b = 1, l = 2)
+    ),
+    axis.text.x = element_text(size=40,family = tt_family),
+    axis.text.y = element_text(size=30,family = tt_family),
+    axis.title.x = element_text(size=40,family = tt_family),
+    axis.title.y = element_text(size=30,family = tt_family),
+    panel.grid.major.y = element_line(colour="black", size=0.1),
+        panel.grid.major.x = element_blank(),
+
+    plot.caption.position = "plot",
+    legend.position = "none"
+    
+
+  )
+  
+```
+
+
