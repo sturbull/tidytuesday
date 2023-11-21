@@ -9,6 +9,13 @@
 
 
 Click on header or the chart for the code.
+
+## [2023-11-21: R-Ladies](https://github.com/sturbull/tidytuesday/blob/master/code/2023_11_21_tidy_tuesday.Rmd)
+
+<a href='https://github.com/sturbull/tidytuesday/blob/master/outputs/R_Ladies_2023_11_21.png'>
+<img src='outputs/R_Ladies_2023_11_21.png'/></a>
+
+
 ## [2023-11-14: Diwali Sales](https://github.com/sturbull/tidytuesday/blob/master/code/2023_11_14_tidy_tuesday.Rmd)
 
 <a href='https://github.com/sturbull/tidytuesday/blob/master/outputs/Diwali_Sales_2023_11_14.png'>
