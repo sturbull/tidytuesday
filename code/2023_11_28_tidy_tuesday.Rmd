@@ -1,0 +1,295 @@
+---
+title: "TidyTemplate"
+date: 2023-11-28
+output: html_document
+---
+
+# TidyTuesday
+
+Join the R4DS Online Learning Community in the weekly #TidyTuesday event!
+Every week we post a raw dataset, a chart or article related to that dataset, and ask you to explore the data.
+While the dataset will be “tamed”, it will not always be tidy! As such you might need to apply various R for Data Science techniques to wrangle the data into a true tidy format.
+The goal of TidyTuesday is to apply your R skills, get feedback, explore other’s work, and connect with the greater #RStats community!
+As such we encourage everyone of all skills to participate!
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(tidytuesdayR)
+library(camcorder)
+library(here)
+library(glue)
+library(ggtext)
+library(showtext)
+library(extrafont)
+library(gganimate)
+library(ggfx)
+```
+
+```{R}
+tt_source <- "{datardis} package by Jonathan Kitt"
+bg_color <- "black"
+txt_color <- "#ffffff"
+txt_color2 <- "gold"
+
+yellow <- "#FFB702"  
+blue <- "#1E9BD5"
+green <- "#20C29D"
+light_blue <- "#00E7EC"
+red <- "#FF5674"
+
+tt_family <- "montserrat"
+tt_family_2 <-  "roboto"
+
+
+font_add_google("Montserrat", tt_family)
+font_add_google("Roboto", tt_family_2)
+
+font_add("fa-brands",
+         regular = here("Assets","Fonts","fontawesome-free-6.4.2-web","webfonts","fa-brands-400.ttf"))
+font_add("fa-solid",
+         regular = here("Assets","Fonts","fontawesome-free-6.4.2-web","webfonts","fa-solid-900.ttf"))
+font_add("fa-regular",
+         regular = here("Assets","Fonts","fontawesome-free-6.4.2-web","webfonts","fa-regular-400.ttf"))
+showtext_auto(enable = T) 
+
+X  <- str_glue("<span style='font-family:fa-brands'>&#xe61b;</span>")
+GH <- str_glue("<span style='font-family:fa-brands'>&#xf09b;</span>")
+MN <- str_glue("<span style='font-family:fa-brands'>&#xf4f6;</span>")
+DT <- str_glue("<span style='font-family:fa-brands'>&#xf1c0;</span>")
+
+tt_caption <- str_glue(
+  "Steven Turnbull #TidyTuesday 2023-11-28<br>
+  {X} @Turdbull {GH} @sturbull {MN} @turdbull<br>
+  Data: {tt_source}
+  "
+)
+
+tt_title_text    <- str_glue("Doctor Who Episodes")
+
+tt_subtitle_text <- str_glue("Ratings across seasons from 2005 to the present day") 
+```
+
+# Load the weekly Data
+
+Download the weekly data and make available in the `tt` object.
+
+```{r Load}
+
+tt <- tt_load("2023-11-28")
+
+```
+
+
+# Readme
+
+Take a look at the readme for the weekly data to get insight on the dataset.
+This includes a data dictionary, source, and a link to an article on the data.
+
+```{r Readme, eval = interactive()}
+
+tt
+
+```
+
+
+# Glimpse Data
+
+Take an initial look at the format of the data available.
+
+```{r Glimpse}
+
+tt %>% 
+  map(glimpse)
+
+```
+
+# Wrangle
+
+Explore the data and process it into a nice format for plotting! Access each dataset by name by using a dollarsign after the `tt` object and then the name of the data set.
+
+```{r Wrangle, fig.width = 10, fig.height = 8}
+
+df_episodes <-tt$drwho_episodes
+df_episodes_clean <-  df_episodes %>%
+  #just seasons
+  filter(!is.na(season_number)) %>%
+  #just episodes
+  filter(type == "episode") %>%
+  #tidy strings
+  mutate(episode_number = str_pad(episode_number,
+                                  width=2,side="left","0")) %>%
+  mutate(season_number = str_pad(season_number,
+                                 width=2,side="left","0")) %>%
+  mutate(season_episode_char = as.character(paste0(season_number,".",episode_number))) %>%
+  mutate(season_number = factor(as.factor(season_number),
+                                levels= str_pad("1":"13",
+                                width=2,side="left","0"))
+         ) %>%
+  mutate(season_episode_number = as.integer(as.factor(season_episode_char))) %>%
+  arrange(season_episode_number) %>%
+  #get number of episodes overall
+  mutate(max_season_episode_number = max(season_episode_number)) %>%
+  #record previous x and y values
+  group_by(season_number) %>%
+  mutate(x_lag = lag(episode_number), 
+         y_lag = lag(rating),
+  ) %>%
+  ungroup() %>%
+  #each point needs to represented in each frame 
+  group_by(season_episode_number) %>%
+  uncount(max_season_episode_number, .id = "frame") %>%
+  # but only if the point has happpened already
+  filter(season_episode_number<= frame) %>%
+  ungroup() %>%
+  mutate(row = row_number()) %>%
+  #get the frame where each season starts and ends
+  group_by(season_number) %>%
+  mutate(season_start = min(frame),
+         season_length = max(as.numeric(episode_number))) %>%
+  ungroup() %>%
+  #record where a point was active (i.e. the season is happening in the frame)
+  group_by(season_episode_number) %>%
+  mutate(
+    active = between(frame,season_start,season_start+season_length),
+    max_active_frame = max(frame[active]),
+    # Make the line solid when active but reduce the alpha over time
+    segment_alpha = case_when(active ~ 1,
+                              !active ~pmax(0.1,(max_active_frame/frame)-0.6)
+    ),
+    point_alpha = case_when(active ~ 1,
+                            !active ~ pmax(0.1,(max_active_frame/frame)-0.6)
+                            
+    )
+    
+  ) %>%
+  ungroup() 
+
+```
+```{R}
+#plotting data
+tardis_blues_ordered <- c('#000e5b', '#002b81', '#003a93', '#1048a4', '#2f55b4', '#5571d4', '#677fe4', '#788ef5', '#8a9efe', '#9dafff', '#b0c1ff', '#c3d3ff', '#d5e4ff')
+
+df_episodes_final <- df_episodes_clean %>% 
+  mutate(episode_number = factor(episode_number,
+                                 levels=str_pad("1":"13",
+                                                width=2,
+                                                side="left",
+                                                "0"))
+         ) %>%
+  #make sure episode values are present across seasons for the x axis
+  group_by(frame) %>%
+  complete(episode_number)
+```
+
+
+
+
+# Visualize
+
+Using your processed dataset, create your unique visualization.
+```{R}
+camcorder::gg_record(dir = here("outputs","2023-11-28"),
+                     device = "png",
+                     width = 8, height = 8,
+                     units = "in", dpi = 320
+)
+```
+
+```{r Visualize}
+
+for(i in 1:max(df_episodes_final$frame)){
+  frame_plot <- df_episodes_final %>% 
+    filter(frame == i) %>%
+    ggplot(aes(x = episode_number, y= rating,
+               group = season_number)) +
+    
+    ggfx::with_outer_glow(
+      geom_segment(aes(xend = x_lag, yend= y_lag,
+                       alpha = segment_alpha,
+                       group = season_number,
+                       colour=season_number
+      ),size=2
+      ),
+      colour = "white", sigma = 10,expand=3
+    ) +
+    ggfx::with_outer_glow(
+      geom_text(data= df_episodes_final %>% 
+                  filter(frame == i) %>%
+                  arrange(desc(season_number)) %>%
+                  head(1),
+                x = "07", size=15, y=93,
+                   aes(label = paste0("Season ", season_number),
+                       colour=season_number)
+                   
+      ),
+      colour = "white", sigma = 10,expand=1
+    ) +
+    scale_y_continuous(limits = c(75,95)) +
+  scale_colour_manual(values=tardis_blues_ordered) +
+    theme_classic(base_size = 20)+
+    labs(
+      title = tt_title_text,
+      subtitle = tt_subtitle_text,
+      caption = tt_caption,
+      x = "Episode",y= "Rating") +
+    scale_alpha_identity() +
+    # transition_manual(frame) +
+    # ease_aes('linear') +
+    
+    theme(
+      plot.background = element_rect(colour=bg_color,fill = bg_color),
+      panel.background = element_rect(colour=bg_color,fill = bg_color),
+      plot.title.position = "plot",
+      
+      plot.title = element_textbox_simple(
+        halign = 0.0,
+        tt_family_2,
+        #lineheight = 0.01,
+        color = txt_color,
+        face = "bold",
+        size = 140,
+        margin = margin(t = 2, r = 0, b = 0, l = 0)
+      ),
+      
+      axis.text = element_text(size=40,colour = txt_color),
+      
+      axis.title = element_text(size=50,colour = txt_color),
+      
+      
+      plot.subtitle = element_textbox_simple(
+        halign = 0.0,
+        #lineheight = 0.01,
+        tt_family,
+        color = txt_color2,
+        #face = "bold",
+        size = 50,
+        margin = margin(t = 5, r = 0, b = 5, l = 0)
+      ),
+      
+      plot.caption = element_textbox_simple(
+        linewidth = 0.4, 
+        family = tt_family, 
+        color = txt_color,
+        size = 30,
+        lineheight = 0.1,
+        margin = margin(t = 1, r = 0, b = 2, l = 2)
+      ),
+      plot.caption.position = "plot",
+      
+      legend.position = "none"
+      
+    )
+  print(frame_plot)
+}
+```
+
+```{R}
+camcorder::gg_playback(name = here("outputs","Doctor_Who_2023_11_28.gif"),
+                       image_resize = 800
+                       )
+```
+
+
