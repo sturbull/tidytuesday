@@ -1,0 +1,258 @@
+---
+title: "TidyTemplate"
+date: 2023-12-04
+output: html_document
+---
+
+# TidyTuesday
+
+Join the R4DS Online Learning Community in the weekly #TidyTuesday event!
+Every week we post a raw dataset, a chart or article related to that dataset, and ask you to explore the data.
+While the dataset will be “tamed”, it will not always be tidy! As such you might need to apply various R for Data Science techniques to wrangle the data into a true tidy format.
+The goal of TidyTuesday is to apply your R skills, get feedback, explore other’s work, and connect with the greater #RStats community!
+As such we encourage everyone of all skills to participate!
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE)
+library(geomtextpath)
+library(tidyverse)
+library(tidytuesdayR)
+library(camcorder)
+library(here)
+library(glue)
+library(ggtext)
+library(showtext)
+library(extrafont)
+```
+
+
+```{R}
+tt_source <- "Our World in Data"
+bg_color <- "#ffffff"
+txt_color <- "black"
+txt_color2 <- "gold"
+
+yellow <- "#FFB702"  
+blue <- "#1E9BD5"
+green <- "#20C29D"
+light_blue <- "#00E7EC"
+red <- "#FF5674"
+
+tt_family <- "montserrat"
+tt_family_2 <-  "cabin"
+
+
+font_add_google("Montserrat", tt_family)
+font_add_google("Cabin", tt_family_2)
+
+font_add("fa-brands",
+         regular = here("Assets","Fonts","fontawesome-free-6.4.2-web","webfonts","fa-brands-400.ttf"))
+font_add("fa-solid",
+         regular = here("Assets","Fonts","fontawesome-free-6.4.2-web","webfonts","fa-solid-900.ttf"))
+font_add("fa-regular",
+         regular = here("Assets","Fonts","fontawesome-free-6.4.2-web","webfonts","fa-regular-400.ttf"))
+showtext_auto(enable = T) 
+
+X  <- str_glue("<span style='font-family:fa-brands'>&#xe61b;</span>")
+GH <- str_glue("<span style='font-family:fa-brands'>&#xf09b;</span>")
+MN <- str_glue("<span style='font-family:fa-brands'>&#xf4f6;</span>")
+DT <- str_glue("<span style='font-family:fa-brands'>&#xf1c0;</span>")
+
+tt_caption <- str_glue(
+  "Steven Turnbull #TidyTuesday 2023-12-05<br>
+  {X} @Turdbull {GH} @sturbull {MN} @turdbull<br>
+  Data: {tt_source}
+  "
+)
+
+tt_title_text    <- str_glue("Changes in Life Expectancy from 1950 Onwards")
+
+tt_subtitle_text <- str_glue("Life expectancy across the world has tended to increase since 1950, but some countries have shown a huge range in estimates over the last 70 years.") 
+```
+
+# Load the weekly Data
+
+Download the weekly data and make available in the `tt` object.
+
+```{r Load}
+
+tt <- tt_load("2023-12-05")
+
+```
+
+
+# Readme
+
+Take a look at the readme for the weekly data to get insight on the dataset.
+This includes a data dictionary, source, and a link to an article on the data.
+
+```{r Readme, eval = interactive()}
+
+tt
+
+```
+
+
+# Glimpse Data
+
+Take an initial look at the format of the data available.
+
+```{r Glimpse}
+
+tt %>% 
+  map(glimpse)
+
+```
+
+# Wrangle
+
+Explore the data and process it into a nice format for plotting! Access each dataset by name by using a dollarsign after the `tt` object and then the name of the data set.
+
+```{r Wrangle}
+
+df <- tt$life_expectancy %>%
+  filter(Year > 1949) %>%
+  group_by(Entity) %>%
+  mutate(range = max(LifeExpectancy) - min(LifeExpectancy)) %>%
+  mutate(LifeExpectancy_AgainstBaseline = LifeExpectancy - LifeExpectancy[Year==1950]) %>%
+  ungroup() %>%
+  arrange(desc(range)) 
+```
+
+
+# Visualize
+
+Using your processed dataset, create your unique visualization.
+```{R}
+camcorder::gg_record(dir = here("outputs","2023-12-05"),
+                     device = "png",
+                     width = 8, height = 8,
+                     units = "in", dpi = 320
+)
+```
+
+```{r Visualize}
+selected_data <- df %>%
+  filter(range>50|Code=="NZL") %>%
+  mutate(vjust_custom = ifelse(Entity %in% c("South Korea","Cambodia","Rwanda"),
+                               -0.65,1.5)) 
+df %>%
+  ggplot(aes(x = Year, y = LifeExpectancy_AgainstBaseline, group=Entity)) +
+  geom_line(alpha=0.01) +
+  geom_line(data=selected_data %>% filter(Code=="NZL"),alpha=0.60,size=0.5,
+            aes(x = Year,
+                y = LifeExpectancy_AgainstBaseline,
+                colour=Entity)) +
+  geom_line(data=selected_data %>% filter(Code!="NZL"),alpha=0.60,size=1,
+            aes(x = Year,
+                y = LifeExpectancy_AgainstBaseline,
+                colour=Entity)) +
+  geom_text(data=selected_data %>% filter(Code!="NZL",
+                                          Year == 2021),
+            aes(x=Year,y=LifeExpectancy_AgainstBaseline,
+                label=Entity,
+                colour=Entity,
+                vjust=vjust_custom),
+            family = tt_family_2,
+            size=15) +
+   geom_text(data=selected_data %>% filter(Code=="NZL",
+                                          Year == 2021),
+            aes(x=Year,y=LifeExpectancy_AgainstBaseline,
+                label=Entity,
+                vjust=vjust_custom),
+            family = tt_family_2,
+            colour = adjustcolor("black",0.5),
+            size=10) +
+  geom_hline(yintercept = 0,linetype=2,linewidth=0.5)+
+  
+  ggforce::geom_mark_rect(data=selected_data,
+                          aes(label = "Cambodia 1975-1977...",
+                              filter = c(Entity == "Cambodia" & between(Year, 1976,1976))),
+                          description = "Genocide carried out by Pol Pot and the Khmer Rouge results in 1.5 to 2 million lives lost by 1979. Average life expectancy drops 26 years compared to 1950.",
+                          label.family = "Cabin",
+                          colour = "black",
+                          con.cap = 0,
+                          x0 = 1960,
+                          y0 = -20,
+                          label.fill = adjustcolor("white",alpha.f = 0.5),
+                          label.fontsize = 20,label.lineheight = 0.3,
+  ) +
+  
+  ggforce::geom_mark_rect(data=selected_data,
+                          aes(label = "Rwanda 1994...",
+                              filter = c(Entity == "Rwanda" & between(Year,1994,1994))),
+                          description = "The Rwandan civil war and subsequent genocide results in 500,000 to 800,000 lives lost. Average life expectancy drops 27 years compared to 1950.",
+                          label.family = "Cabin",
+                          x0 = 2020,
+                          y0 = -20,
+                          colour = "black",con.cap = 0,label.fill = adjustcolor("white",alpha.f = 0.5),
+                          label.fontsize = 20,label.lineheight = 0.3,
+  ) +
+  
+  ggforce::geom_mark_rect(data=selected_data,
+                          aes(label = "North Korea 1995-2000...",
+                              filter = c(Entity == "North Korea" & between(Year,1996,2001))),
+                          description = "The North Korean Famine (also known as the March of Suffering) results in 240,000 to 3.5 million lives lost. Average life expectancy, whilst previously on the rise, drops 10 years. ",
+                          label.family = "Cabin",
+                          x0 = 2000,
+                          y0 = 30,
+                          colour = "black",con.cap = 0,label.fill = adjustcolor("white",alpha.f = 0.5),
+                          label.fontsize = 20,label.lineheight = 0.3,
+  ) +
+  scale_colour_manual(values = c("South Korea" = "#1b9e77",
+                                 "North Korea" = "#d95f02",
+                                 "Cambodia" = "#7570b3",
+                                 "Rwanda" = "#e7298a")
+  ) +
+  scale_x_continuous(breaks = seq(1950,2020,10)) +
+  labs(caption = tt_caption,
+       title = tt_title_text,
+       subtitle = tt_subtitle_text,
+       y = "Life Expectancy\n(against 1950 baseline)") +
+  coord_cartesian(clip = "off") +
+  theme_classic(base_family = tt_family_2) +
+  theme(
+    plot.margin = unit(c(0.1,2,0.1,0.1),"cm"),
+    plot.background = element_rect(colour=bg_color,fill = bg_color),
+    panel.background = element_rect(colour=bg_color,fill = bg_color),
+    axis.title = element_textbox_simple(
+      lineheight = 0.3,
+      size=50,
+      margin = margin(t = 1, r = 0, b = 5, l = 0,unit = "cm")
+      
+    ),
+    axis.text = element_textbox_simple(
+      size=40
+    ),
+    
+    plot.title.position = "plot",
+    plot.title = element_textbox_simple(
+      halign = 0,
+      tt_family_2,margin = margin(t = 0, r = 0, b = 0.5, l = 0,unit = "cm"),
+      color = txt_color,
+      size = 85,
+    ),
+
+    plot.subtitle = element_textbox_simple(
+      halign = 0.0,
+      tt_family_2,
+      color = txt_color,lineheight = 0.2,
+      size = 45,width = unit(14,"cm"),
+      margin = margin(t = 0.1, r = 0, b = 1, l = 0,unit = "cm")
+    ),
+    
+    plot.caption = element_textbox_simple(
+      family = tt_family, 
+      color = txt_color,
+      size = 30,
+      lineheight = 0.2,
+      margin = margin(t = 1, r = 0, b = 5, l = 5)
+    ),
+    plot.caption.position = "plot",
+    
+    legend.position = "none"
+  )
+
+```
+
