@@ -9,6 +9,11 @@
 
 
 Click on header or the chart for the code.
+## [2023-12-05: Life Expectancy](https://github.com/sturbull/tidytuesday/blob/master/code/2023_12_05_tidy_tuesday.Rmd)
+
+<a href='https://github.com/sturbull/tidytuesday/blob/master/outputs/Life_Expectancy_2023_12_05.png'>
+<img src='outputs/Life_Expectancy_2023_12_05.png'/></a>
+
 
 ## [2023-11-28: Doctor Who](https://github.com/sturbull/tidytuesday/blob/master/code/2023_11_28_tidy_tuesday.Rmd)
 
